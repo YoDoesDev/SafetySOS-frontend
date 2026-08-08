@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- 1. Core Communication & Tracking Permissions -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    
+    <!-- 2. System Alert & Notification Permissions -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    
+    <!-- 3. Background Processing & Persistence Permissions -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    
+    <application
+    android:name=".SafetySOSApp"
+    android:allowBackup="true"
+    android:icon="@mipmap/ic_launcher"
+    android:label="@string/app_name"
+    android:roundIcon="@mipmap/ic_launcher_round"
+    android:supportsRtl="true"
+    android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+
+    <!-- Splash Activity (Launcher) -->
+    <activity
+        android:name=".features.splash.presentation.SplashActivity"
+        android:exported="true">
+
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+
+    </activity>
+
+    <!-- Authentication Activity -->
+    <activity
+        android:name=".features.auth.presentation.AuthActivity"
+        android:exported="false" />
+
+    <!-- Background Service for Hardware Button Hooking & Safety Monitoring -->
+    <service
+        android:name=".services.SafetyBackgroundService"
+        android:enabled="true"
+        android:exported="false"
+        android:foregroundServiceType="specialUse">
+
+        <property
+            android:name="android.app.PROPERTY_SPECIAL_USE_FOCUSED_SERVICE"
+            android:value="Provides real-time personal safety monitoring and emergency trigger mechanisms." />
+
+    </service>
+
+    <!-- Broadcast Receiver to Restart Services Automatically After Device Reboot -->
+    <receiver
+        android:name=".receivers.BootReceiver"
+        android:enabled="true"
+        android:exported="false">
+
+        <intent-filter>
+            <action android:name="android.intent.action.BOOT_COMPLETED" />
+        </intent-filter>
+
+    </receiver>
+
+</application>
+    
+</manifest>
