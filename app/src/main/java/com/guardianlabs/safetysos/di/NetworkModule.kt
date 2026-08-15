@@ -20,7 +20,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://api.safetysos.com/")
+            .baseUrl("https://safetysos-api.onrender.com/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

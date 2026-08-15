@@ -1,12 +1,17 @@
+
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.dagger.hilt.android'
 apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-android'
+apply plugin: 'com.google.gms.google-services'
 
 android {
 	namespace "com.guardianlabs.safetysos" 
 	
+    
+    
     compileSdkVersion 34
     defaultConfig {
         applicationId "com.guardianlabs.safetysos"
@@ -17,6 +22,9 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -38,6 +46,12 @@ android {
 
     composeOptions {
         kotlinCompilerExtensionVersion '1.4.6' 
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'org.xerial:sqlite-jdbc:3.40.1.0'
     }
 }
 
@@ -96,7 +110,6 @@ dependencies {
     // Hilt and DI
     implementation "com.google.dagger:hilt-android:2.48.1"
 kapt "com.google.dagger:hilt-compiler:2.48.1"
-ksp "com.google.dagger:hilt-compiler:2.48.1"
 implementation "javax.inject:javax.inject:1"
 
 
@@ -105,7 +118,11 @@ implementation "androidx.hilt:hilt-navigation-compose:1.2.0"
 implementation("androidx.room:room-runtime:2.5.2")
 implementation("androidx.room:room-ktx:2.5.2")
 
-kapt("androidx.room:room-compiler:2.5.2")
 ksp("androidx.room:room-compiler:2.5.2")
+
+    // Firebase Authentication
+    implementation platform('com.google.firebase:firebase-bom:33.1.0')
+    implementation 'com.google.firebase:firebase-auth'
+
     
 }

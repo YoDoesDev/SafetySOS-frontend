@@ -1,4 +1,4 @@
-package com.guardianlabs.safetysos.core.data.local
+package com.guardianlabs.safetysos.core.data.local.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
@@ -9,7 +9,7 @@ import com.guardianlabs.safetysos.core.data.local.database.entities.UserEntity
     entities = [UserEntity::class],
     version = 1
 )
-abstract class AppDatabase : RoomDatabase() {
+abstract class Database : RoomDatabase() {
 
     abstract fun userDao(): UserDao
 }

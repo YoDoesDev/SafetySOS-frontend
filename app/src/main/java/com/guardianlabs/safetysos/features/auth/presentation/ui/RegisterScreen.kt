@@ -27,12 +27,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.hilt.navigation.compose.hiltViewModel
-
+import android.app.Activity
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun RegisterScreen(
     navController: NavController
 ) {
+
+    val context = LocalContext.current
+val activity = context as? Activity
 
     val colors = MaterialTheme.colorScheme
 
@@ -44,7 +48,7 @@ fun RegisterScreen(
     val confirmPassword by viewModel.confirmPassword.collectAsState()
     val error by viewModel.error.collectAsState()
     val navigateToOtp by viewModel.navigateToOtp.collectAsState()
-    val isHiltSuccess by viewModel.isHiltSuccess.collectAsState()
+    val verificationId by viewModel.verificationId.collectAsState()
     
     val snackbarHostState = remember { SnackbarHostState() }
     
@@ -54,11 +58,6 @@ fun RegisterScreen(
         viewModel.clearError()
     }
 }
-   LaunchedEffect(isHiltSuccess) {
-       if(isHiltSuccess){
-           snackbarHostState.showSnackbar("Hilt works!!")
-      }
-   }
     
     LaunchedEffect(navigateToOtp) {
         if (navigateToOtp) {
@@ -213,7 +212,9 @@ fun RegisterScreen(
             AuthButton(
                 text = "Create Account",
                 onClick = {
-                    viewModel.createAccount() 
+                    activity?.let {
+    viewModel.createAccount(it)
+}
                 }
             )
 

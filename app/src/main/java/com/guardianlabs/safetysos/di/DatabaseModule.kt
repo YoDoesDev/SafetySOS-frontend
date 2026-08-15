@@ -19,17 +19,17 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(
         @ApplicationContext context: Context
-    ): AppDatabase {
+    ): Database {
 
         return Room.databaseBuilder(
             context,
-            AppDatabase::class.java,
+            Database::class.java,
             "safetysos.db"
         ).build()
     }
 
     @Provides
     fun provideUserDao(
-        db: AppDatabase
+        db: Database
     ): UserDao = db.userDao()
 }

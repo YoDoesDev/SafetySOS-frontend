@@ -1,6 +1,6 @@
 package com.guardianlabs.safetysos.features.auth.domain.repositories
 
-import com.guardianlabs.safetysos.features.auth.domain.models.HiltCheck
+import com.guardianlabs.safetysos.features.auth.domain.models.*
 
 interface RegisterInterface {
 

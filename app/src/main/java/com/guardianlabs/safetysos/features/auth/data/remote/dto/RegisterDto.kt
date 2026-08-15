@@ -9,6 +9,5 @@ data class RegisterRequestDto(
 
 // Response received from backend containing JWT
 data class RegisterResponseDto(
-    val token: String,
-    val message: String? = null
+    val navigateToOtp: Boolean
 )

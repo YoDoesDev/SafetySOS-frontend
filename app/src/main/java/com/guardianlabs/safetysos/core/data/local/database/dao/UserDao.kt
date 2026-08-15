@@ -3,7 +3,7 @@ package com.guardianlabs.safetysos.core.data.local.database.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
-import com.guardianlabs.safetysos.core.data.local.entities.UserEntity
+import com.guardianlabs.safetysos.core.data.local.database.entities.UserEntity
 
 @Dao
 interface UserDao {

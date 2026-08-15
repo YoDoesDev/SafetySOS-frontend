@@ -1,7 +1,8 @@
-package com.guardianlabs.safetysos.core.preferences
+package com.guardianlabs.safetysos.core.data.local.preferences
 
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.guardianlabs.safetysos.core.data.local.preferences.EncryptedPrefs
 
 @Singleton
 class TokenManager @Inject constructor(
