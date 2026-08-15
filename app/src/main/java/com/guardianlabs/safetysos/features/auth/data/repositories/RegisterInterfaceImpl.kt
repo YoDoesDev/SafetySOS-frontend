@@ -4,7 +4,7 @@ import com.guardianlabs.safetysos.core.data.local.database.dao.UserDao
 import com.guardianlabs.safetysos.core.data.local.preferences.TokenManager
 import com.guardianlabs.safetysos.features.auth.data.remote.AuthApiService
 import com.guardianlabs.safetysos.features.auth.data.remote.dto.RegisterRequestDto
-import com.guardianlabs.safetysos.features.auth.domain.models.User
+import com.guardianlabs.safetysos.features.auth.domain.models.RegisterCheck
 import com.guardianlabs.safetysos.features.auth.domain.repositories.RegisterInterface
 import retrofit2.HttpException
 import java.io.IOException
@@ -20,7 +20,7 @@ class RegisterInterfaceImpl @Inject constructor(
         phone: String, 
         password: String, 
         username: String
-    ): Result<User> {
+    ): Result<RegisterCheck> {
         return try {
             val request = RegisterRequestDto(
                 username = username, 
@@ -30,7 +30,7 @@ class RegisterInterfaceImpl @Inject constructor(
             
             val response = api.register(request)
 
-            val user = User(
+            val user = RegisterCheck(
                 navigateToOtp = response.navigateToOtp
             )
 

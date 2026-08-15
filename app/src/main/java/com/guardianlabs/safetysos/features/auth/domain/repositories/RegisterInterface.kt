@@ -8,6 +8,6 @@ interface RegisterInterface {
         phone: String, 
         password: String, 
         username: String
-    ): Result<User>
+    ): Result<RegisterCheck>
 
 }
