@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.guardianlabs.safetysos.features.auth.domain.usecase.VerifyOtpUseCase
-import com.guardianlabs.safetysos.features.auth.domain.usecase.RegisterOTPCase
+import com.guardianlabs.safetysos.features.auth.domain.usecase.RegisterOtpCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -64,7 +64,7 @@ class RegisterOtpViewModel @Inject constructor(
 
             result.onSuccess { uid ->
                 // If OTP verification is successful, proceed to register the user
-                val registerResult = registerOTPCase(
+                val registerResult = registerOtpCase(
                     username = username,
                     password = password,
                     phoneNumber = phone,
