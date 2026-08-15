@@ -1,10 +1,12 @@
 package com.guardianlabs.safetysos.features.auth.presentation.viewmodels
 
+import android.app.Activity
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.guardianlabs.safetysos.features.auth.domain.usecase.RegisterOTPCase
+import com.guardianlabs.safetysos.features.auth.domain.usecase.SendOtpUseCase
 import com.guardianlabs.safetysos.features.auth.domain.usecase.VerifyOtpUseCase
-import com.guardianlabs.safetysos.features.auth.domain.usecase.RegisterOtpCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,17 +15,23 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RegisterOtpViewModel @Inject constructor(
+class RegisterOtpView @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val verifyOtpUseCase: VerifyOtpUseCase,
-    private val registerOTPCase: RegisterOTPCase
+    private val registerOTPCase: RegisterOTPCase,
+    private val sendOtpUseCase: SendOtpUseCase
 ) : ViewModel() {
 
-    // 1. Fetch data passed from RegisterScreen via SavedStateHandle
-    val verificationId: String = savedStateHandle.get<String>("verificationId").orEmpty()
+    // 1. Fetch initial values passed from navigation
     val phone: String = savedStateHandle.get<String>("phone").orEmpty()
     val username: String = savedStateHandle.get<String>("username").orEmpty()
     val password: String = savedStateHandle.get<String>("password").orEmpty()
+
+    // Dynamic verificationId (starts with SavedStateHandle value, updates on resend)
+    private val _verificationId = MutableStateFlow(
+        savedStateHandle.get<String>("verificationId").orEmpty()
+    )
+    val verificationId: StateFlow<String> = _verificationId.asStateFlow()
 
     // 2. State management
     private val _otp = MutableStateFlow("")
@@ -44,6 +52,31 @@ class RegisterOtpViewModel @Inject constructor(
             _error.value = null // Clear error when typing
         }
     }
+    
+    fun onNavigatedToHomeHandled() {
+        _navigateToHome.value = false
+    }
+    
+    fun resendOtp(activity: Activity) {
+        val formattedPhone = if (phone.startsWith("+")) phone else "+91$phone"
+        
+        _isLoading.value = true
+        _error.value = null
+
+        sendOtpUseCase(
+            phoneNumber = formattedPhone,
+            activity = activity,
+            onCodeSent = { newId ->
+                _isLoading.value = false
+                _verificationId.value = newId
+                savedStateHandle["verificationId"] = newId
+            },
+            onError = { errorMsg ->
+                _isLoading.value = false
+                _error.value = errorMsg
+            }
+        )
+    }
 
     fun verifyOtp() {
         val currentOtp = _otp.value
@@ -56,18 +89,18 @@ class RegisterOtpViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
 
-            // Call usecase with retrieved credentials + entered OTP
+            // Call usecase with current verificationId + entered OTP
             val result = verifyOtpUseCase(
                 userCode = currentOtp,
-                verificationId = verificationId
+                verificationId = _verificationId.value
             )
 
             result.onSuccess { uid ->
                 // If OTP verification is successful, proceed to register the user
-                val registerResult = registerOtpCase(
+                val registerResult = registerOTPCase(
                     username = username,
+                    phone = phone,
                     password = password,
-                    phoneNumber = phone,
                     uid = uid
                 )
 

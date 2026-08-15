@@ -7,7 +7,7 @@ data class RegisterRequestDto(
     val password: String
 )
 
-// Response received from backend containing JWT
+// Response received from backend
 data class RegisterResponseDto(
     val navigateToOtp: Boolean
 )

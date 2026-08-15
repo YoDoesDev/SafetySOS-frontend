@@ -1,7 +1,5 @@
 package com.guardianlabs.safetysos.features.auth.data.repositories
 
-import com.guardianlabs.safetysos.core.data.local.database.dao.UserDao
-import com.guardianlabs.safetysos.core.data.local.preferences.TokenManager
 import com.guardianlabs.safetysos.features.auth.data.remote.AuthApiService
 import com.guardianlabs.safetysos.features.auth.data.remote.dto.RegisterRequestDto
 import com.guardianlabs.safetysos.features.auth.domain.models.RegisterCheck
@@ -12,8 +10,6 @@ import javax.inject.Inject
 
 class RegisterInterfaceImpl @Inject constructor(
     private val api: AuthApiService, 
-    private val dao: UserDao, 
-    private val tokenManager: TokenManager
 ) : RegisterInterface {
 
     override suspend fun register(

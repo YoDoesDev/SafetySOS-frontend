@@ -9,13 +9,13 @@ class RegisterOtpCase @Inject constructor(
     private val repository: RegisterOtpInterface
 ) {
     suspend operator fun invoke(
+  username: String, 
   phone: String,
-  password: String, 
-  username: String,
+  password: String,
   uid: String
 ): Result<User> {
     return repository.register(
-        phone, password, username
+        username, phone, password, uid
     )
 }
 }
