@@ -59,12 +59,27 @@ val activity = context as? Activity
     }
 }
     
-    LaunchedEffect(navigateToOtp) {
-        if (navigateToOtp) {
-            navController.navigate(AuthRoutes.RegisterOtp)
-            viewModel.onNavigatedToOtp()
+    
+
+val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+LaunchedEffect(uiState.navigateToOtp) {
+    if (uiState.navigateToOtp) {
+        
+        navController.currentBackStackEntry?.savedStateHandle?.apply {
+            set("verificationId", uiState.verificationId)
+            set("phoneNumber", uiState.phone)
+            set("username", uiState.username)
+            set("password", uiState.password)
         }
+
+        
+        navController.navigate(AuthRoutes.RegisterOtp)
+
+        
+        viewModel.onNavigatedToOtp() 
     }
+}
 
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
