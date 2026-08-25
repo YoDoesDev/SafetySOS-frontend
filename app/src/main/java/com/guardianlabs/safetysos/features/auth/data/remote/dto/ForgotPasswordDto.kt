@@ -1,4 +1,4 @@
-package com.guardianlabs.safetysos.features.auth.data.remote.dto
+ package com.guardianlabs.safetysos.features.auth.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
@@ -7,5 +7,6 @@ data class ForgotPasswordRequestDto(
 )
 
 data class ForgotPasswordResponseDto(
-    @SerializedName("success") val success: Boolean
+    @SerializedName("success") val success: Boolean,
+    @SerializedName("reason") val reason: String? = null
 )

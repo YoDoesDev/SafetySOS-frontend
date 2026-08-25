@@ -1,4 +1,4 @@
-package com.guardianlabs.safetysos.features.auth.presentation.viewmodels
+ package com.guardianlabs.safetysos.features.auth.presentation.viewmodels
 
 import android.app.Activity
 import androidx.lifecycle.ViewModel
@@ -66,7 +66,7 @@ class ForgotPasswordView @Inject constructor(
             when (val result = forgotPwCase(formattedPhone)) {
                 is NetworkResult.Success -> {
                     val responseDto = result.data
-                    if (responseDto.exists) {
+                    if (responseDto.success) {
                         sendOtpUseCase(
                             phoneNumber = formattedPhone,
                             activity = activity,
@@ -90,7 +90,7 @@ class ForgotPasswordView @Inject constructor(
 
                 is NetworkResult.Error -> {
                     _forgotPasswordState.value = NetworkResult.Error(
-                        result.data.reason ?: "Failed to verify phone number."
+                        result.message ?: "Failed to verify phone number."
                     )
                 }
 

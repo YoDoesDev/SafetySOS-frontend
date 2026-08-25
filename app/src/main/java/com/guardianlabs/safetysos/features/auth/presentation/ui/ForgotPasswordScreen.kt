@@ -1,4 +1,4 @@
-package com.guardianlabs.safetysos.features.auth.presentation.ui
+ package com.guardianlabs.safetysos.features.auth.presentation.ui
 
 import android.app.Activity
 import androidx.compose.foundation.background
@@ -53,19 +53,18 @@ fun ForgotPasswordScreen(
         }
     }
 
-    // Display error messages via Snackbar
+    // Display error messages via Snackbar safely
     LaunchedEffect(forgotPasswordState) {
-    val state = forgotPasswordState
-    if (state is NetworkResult.Error) {
-        val message = state.message
-        viewModel.clearError() // Reset state FIRST so re-triggers are safe
-        snackbarHostState.showSnackbar(
-            message = message,
-            duration = SnackbarDuration.Short
-        )
+        val state = forgotPasswordState
+        if (state is NetworkResult.Error) {
+            val message = state.message
+            viewModel.clearError() // Reset state FIRST so re-triggers are safe
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Short
+            )
+        }
     }
-}
-
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -119,7 +118,7 @@ fun ForgotPasswordScreen(
 
                 Text(
                     text = "Remember your password?",
-                    color = colors.onBackground.copy(alpha = .65f)
+                    color = colors.onBackground.copy(alpha = 0.65f)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
