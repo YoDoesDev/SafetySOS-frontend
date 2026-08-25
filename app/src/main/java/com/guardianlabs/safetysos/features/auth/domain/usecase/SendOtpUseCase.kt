@@ -13,12 +13,27 @@ class SendOtpUseCase @Inject constructor(
         onCodeSent: (verificationId: String) -> Unit,
         onError: (message: String) -> Unit
     ) {
+        // Strip out non-digits first
+        val digitsOnly = phoneNumber.replace(Regex("[^0-9]"), "")
+        
+        // E.164 Formatting Guard
+        val formattedNumber = when {
+            digitsOnly.length == 10 -> "+91$digitsOnly"
+            digitsOnly.length == 12 && digitsOnly.startsWith("91") -> "+$digitsOnly"
+            phoneNumber.startsWith("+") -> phoneNumber.replace(Regex("[^0-9+]"), "")
+            else -> "+91$digitsOnly"
+        }
+
+        if (digitsOnly.length < 10) {
+            onError("Please enter a valid 10-digit mobile number.")
+            return
+        }
+
         phoneAuthRepository.sendOtp(
-            phoneNumber = phoneNumber,
+            phoneNumber = formattedNumber,
             activity = activity,
             onCodeSent = onCodeSent,
             onError = onError
         )
     }
 }
-

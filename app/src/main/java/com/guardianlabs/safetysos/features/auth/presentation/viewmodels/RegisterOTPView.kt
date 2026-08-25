@@ -4,7 +4,9 @@ import android.app.Activity
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.guardianlabs.safetysos.features.auth.domain.usecase.RegisterOTPCase
+import com.guardianlabs.safetysos.features.auth.data.network.NetworkResult
+import com.guardianlabs.safetysos.features.auth.domain.models.User
+import com.guardianlabs.safetysos.features.auth.domain.usecase.RegisterOtpCase
 import com.guardianlabs.safetysos.features.auth.domain.usecase.SendOtpUseCase
 import com.guardianlabs.safetysos.features.auth.domain.usecase.VerifyOtpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,62 +20,73 @@ import javax.inject.Inject
 class RegisterOtpView @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val verifyOtpUseCase: VerifyOtpUseCase,
-    private val registerOTPCase: RegisterOTPCase,
+    private val registerOTPCase: RegisterOtpCase,
     private val sendOtpUseCase: SendOtpUseCase
 ) : ViewModel() {
 
-    // 1. Fetch initial values passed from navigation
-    val phone: String = savedStateHandle.get<String>("phone").orEmpty()
-    val username: String = savedStateHandle.get<String>("username").orEmpty()
-    val password: String = savedStateHandle.get<String>("password").orEmpty()
+    private fun getSanitizedArg(key: String): String {
+        val value = savedStateHandle.get<String>(key).orEmpty()
+        return if (value == "EMPTY") "" else value
+    }
 
-    // Dynamic verificationId (starts with SavedStateHandle value, updates on resend)
-    private val _verificationId = MutableStateFlow(
-        savedStateHandle.get<String>("verificationId").orEmpty()
-    )
+    val phone: String get() = getSanitizedArg("phone")
+    val username: String get() = getSanitizedArg("username")
+    val password: String get() = getSanitizedArg("password")
+
+    private val _verificationId = MutableStateFlow(getSanitizedArg("verificationId"))
     val verificationId: StateFlow<String> = _verificationId.asStateFlow()
 
-    // 2. State management
     private val _otp = MutableStateFlow("")
     val otp: StateFlow<String> = _otp.asStateFlow()
 
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
+    private val _message = MutableStateFlow<String?>(null)
+    val message: StateFlow<String?> = _message.asStateFlow()
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    private val _navigateToHome = MutableStateFlow(false)
-    val navigateToHome: StateFlow<Boolean> = _navigateToHome.asStateFlow()
+    // 🌟 Single source of truth for the registration API operation
+    private val _registrationState = MutableStateFlow<NetworkResult<User>>(NetworkResult.Idle)
+    val registrationState: StateFlow<NetworkResult<User>> = _registrationState.asStateFlow()
 
     fun onOtpChanged(newOtp: String) {
         if (newOtp.length <= 6) {
             _otp.value = newOtp
-            _error.value = null // Clear error when typing
+            if (_registrationState.value is NetworkResult.Error) {
+                _registrationState.value = NetworkResult.Idle
+            }
         }
     }
     
-    fun onNavigatedToHomeHandled() {
-        _navigateToHome.value = false
+    fun clearError() { 
+        if (_registrationState.value is NetworkResult.Error) {
+            _registrationState.value = NetworkResult.Idle
+        }
     }
     
+    fun clearMessage() { _message.value = null }
+    
+    fun resetRegistrationState() {
+        _registrationState.value = NetworkResult.Idle
+    }
+
     fun resendOtp(activity: Activity) {
-        val formattedPhone = if (phone.startsWith("+")) phone else "+91$phone"
-        
-        _isLoading.value = true
-        _error.value = null
+        _registrationState.value = NetworkResult.Loading
+
+        val phoneToUse = phone
+        if (phoneToUse.isBlank()) {
+            _registrationState.value = NetworkResult.Error("Phone number missing. Please go back and re-enter your details.")
+            return
+        }
 
         sendOtpUseCase(
-            phoneNumber = formattedPhone,
+            phoneNumber = phoneToUse,
             activity = activity,
             onCodeSent = { newId ->
-                _isLoading.value = false
+                _registrationState.value = NetworkResult.Idle
                 _verificationId.value = newId
                 savedStateHandle["verificationId"] = newId
+                _message.value = "OTP Resent!"
             },
             onError = { errorMsg ->
-                _isLoading.value = false
-                _error.value = errorMsg
+                _registrationState.value = NetworkResult.Error(errorMsg)
             }
         )
     }
@@ -81,39 +94,56 @@ class RegisterOtpView @Inject constructor(
     fun verifyOtp() {
         val currentOtp = _otp.value
         if (currentOtp.length != 6) {
-            _error.value = "Please enter a valid 6-digit OTP"
+            _registrationState.value = NetworkResult.Error("Please enter a valid 6-digit OTP")
+            return
+        }
+
+        val activeVerificationId = _verificationId.value.ifBlank {
+            getSanitizedArg("verificationId")
+        }
+
+        if (activeVerificationId.isBlank()) {
+            _registrationState.value = NetworkResult.Error("Session expired. Please tap 'Resend OTP'.")
             return
         }
 
         viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
+            _registrationState.value = NetworkResult.Loading
 
-            // Call usecase with current verificationId + entered OTP
+            // 1. Verify OTP with Firebase / Auth Provider
             val result = verifyOtpUseCase(
-                userCode = currentOtp,
-                verificationId = _verificationId.value
+                verificationId = activeVerificationId,
+                userCode = currentOtp
             )
 
             result.onSuccess { uid ->
-                // If OTP verification is successful, proceed to register the user
-                val registerResult = registerOTPCase(
+                // 2. Call backend register endpoint returning NetworkResult<User>
+                val netResult = registerOTPCase(
                     username = username,
                     phone = phone,
                     password = password,
                     uid = uid
                 )
 
-                registerResult.onSuccess {
-                    _isLoading.value = false
-                    _navigateToHome.value = true // Navigate to home on successful registration
-                }.onFailure { exception ->
-                    _isLoading.value = false
-                    _error.value = exception.localizedMessage ?: "Registration failed. Please try again."
-                }
+                // Pass NetworkResult directly to UI state
+                _registrationState.value = netResult
+
             }.onFailure { exception ->
-                _isLoading.value = false
-                _error.value = exception.localizedMessage ?: "Verification failed. Please try again."
+                val rawMessage = exception.localizedMessage ?: ""
+                
+                val formattedError = if (
+                    rawMessage.contains("invalid", ignoreCase = true) || 
+                    rawMessage.contains("code", ignoreCase = true) ||
+                    rawMessage.contains("credential", ignoreCase = true)
+                ) {
+                    "Incorrect OTP code. Please try again."
+                } else if (rawMessage.contains("sessionInfo", ignoreCase = true)) {
+                    "Session expired. Please tap 'Resend OTP'."
+                } else {
+                    rawMessage.ifBlank { "Verification failed. Please try again." }
+                }
+
+                _registrationState.value = NetworkResult.Error(formattedError)
             }
         }
     }

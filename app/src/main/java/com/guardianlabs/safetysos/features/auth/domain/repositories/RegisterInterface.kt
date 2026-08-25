@@ -1,6 +1,8 @@
 package com.guardianlabs.safetysos.features.auth.domain.repositories
 
 import com.guardianlabs.safetysos.features.auth.domain.models.*
+import com.guardianlabs.safetysos.features.auth.data.network.NetworkResult
+
 
 interface RegisterInterface {
 
@@ -8,6 +10,6 @@ interface RegisterInterface {
         phone: String, 
         password: String, 
         username: String
-    ): Result<RegisterCheck>
+    ): NetworkResult<RegisterCheck>
 
 }

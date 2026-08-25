@@ -1,10 +1,10 @@
 package com.guardianlabs.safetysos.features.auth.data.repositories
 
+import com.guardianlabs.safetysos.features.auth.data.network.NetworkResult
 import com.guardianlabs.safetysos.features.auth.data.remote.AuthApiService
 import com.guardianlabs.safetysos.features.auth.data.remote.dto.RegisterRequestDto
 import com.guardianlabs.safetysos.features.auth.domain.models.RegisterCheck
 import com.guardianlabs.safetysos.features.auth.domain.repositories.RegisterInterface
-import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
@@ -16,7 +16,7 @@ class RegisterInterfaceImpl @Inject constructor(
         phone: String, 
         password: String, 
         username: String
-    ): Result<RegisterCheck> {
+    ): NetworkResult<RegisterCheck> {
         return try {
             val request = RegisterRequestDto(
                 username = username, 
@@ -24,22 +24,37 @@ class RegisterInterfaceImpl @Inject constructor(
                 password = password
             )
             
-            val response = api.register(request)
+            val httpResponse = api.register(request)
 
-            val user = RegisterCheck(
-                navigateToOtp = response.navigateToOtp
-            )
+            if (httpResponse.isSuccessful && httpResponse.body() != null) {
+                val responseDto = httpResponse.body()!! 
 
-            Result.success(user)
+                val registerCheckDomain = RegisterCheck(
+                    navigateToOtp = responseDto.navigateToOtp ?: false
+                )
+                
+                NetworkResult.Success(registerCheckDomain)
+            } else {
+                // 1. Read the raw error JSON payload
+                val rawError = httpResponse.errorBody()?.string().orEmpty().trim()
+
+                // 2. Extract the "reason" key from the non-200 error response
+                val cleanMessage = try {
+                    val json = org.json.JSONObject(rawError)
+                    // Check "reason" first, then fallback keys if missing
+                    json.optString("reason", json.optString("message", "Validation failed"))
+                } catch (e: Exception) {
+                    rawError.takeIf { it.isNotBlank() } ?: "Validation failed (${httpResponse.code()})"
+                }
+
+                NetworkResult.Error(message = cleanMessage, code = httpResponse.code())
+            }
 
         } catch (e: IOException) {
-            Result.failure(Exception("No internet connection.", e))
-
-        } catch (e: HttpException) {
-            Result.failure(Exception("Server error (${e.code()}).", e))
+            NetworkResult.Error("No internet connection. Please try again.")
 
         } catch (e: Exception) {
-            Result.failure(e)
+            NetworkResult.Error(e.localizedMessage ?: "An unexpected error occurred.")
         }
     }
 }

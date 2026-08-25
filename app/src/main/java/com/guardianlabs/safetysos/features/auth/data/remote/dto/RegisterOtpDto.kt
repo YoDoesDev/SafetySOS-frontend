@@ -1,20 +1,42 @@
 package com.guardianlabs.safetysos.features.auth.data.remote.dto
 
+import com.google.gson.annotations.SerializedName
+
 // Request sent to backend
 data class RegisterOtpRequestDto(
+    @SerializedName("username")
     val username: String,
+
+    @SerializedName("phone")
     val phone: String,
-    val password: String, 
+
+    @SerializedName("password")
+    val password: String,
+
+    @SerializedName("uid")
     val uid: String
 )
 
 // Response received from backend 
 data class RegisterOtpResponseDto(
-    val username: String,
-    val phone: String,
-    val passwordHash: String, 
-    val uid: String, 
-    val accessToken: String, 
-    val refreshToken: String,
-    val navigateToHome: Boolean
+    @SerializedName("username")
+    val username: String? = null,
+
+    @SerializedName("phone")
+    val phone: String? = null,
+
+    @SerializedName("passwordHash")
+    val passwordHash: String? = null,
+
+    @SerializedName("uid")
+    val uid: String? = null,
+
+    @SerializedName("accessToken")
+    val accessToken: String? = null,
+
+    @SerializedName("refreshToken")
+    val refreshToken: String? = null,
+
+    @SerializedName("navigateToHome")
+    val navigateToHome: Boolean? = false
 )

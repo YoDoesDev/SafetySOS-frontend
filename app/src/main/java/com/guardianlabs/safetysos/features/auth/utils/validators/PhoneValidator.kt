@@ -3,25 +3,24 @@ package com.guardianlabs.safetysos.features.auth.utils.validators
 object PhoneValidator {
 
     fun validatePhone(phone: String): String? {
+        if (phone.isBlank())     
+            return "Phone number cannot be empty."
+        
+        if (phone.contains(" "))
+            return "Phone number cannot contain spaces."
 
-        return when {
+        // Remove optional leading '+' before checking if all remaining characters are digits
+        val digitsOnly = if (phone.startsWith("+")) phone.substring(1) else phone
 
-            phone.isBlank() ->
-                "Phone number cannot be empty."
+        if (!digitsOnly.all { it.isDigit() }) 
+            return "Phone number must contain only digits."
 
-            phone.contains(" ") ->
-                "Phone number cannot contain spaces."
+        if (phone.length < 6) 
+            return "Phone number is too short."
 
-            phone.any { !it.isDigit() } ->
-                "Phone number must contain only digits."
+        if (phone.length > 15) 
+            return "Phone number is too long."
 
-            phone.length < 6 ->
-                "Phone number is too short."
-
-            phone.length > 15 ->
-                "Phone number is too long."
-
-            else -> null
-        }
+        return null
     }
 }

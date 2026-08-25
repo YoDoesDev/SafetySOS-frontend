@@ -1,5 +1,3 @@
-
-
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.dagger.hilt.android'
@@ -8,9 +6,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'com.google.gms.google-services'
 
 android {
-	namespace "com.guardianlabs.safetysos" 
-	
-    
+    namespace "com.guardianlabs.safetysos" 
     
     compileSdkVersion 34
     defaultConfig {
@@ -109,20 +105,19 @@ dependencies {
     
     // Hilt and DI
     implementation "com.google.dagger:hilt-android:2.48.1"
-kapt "com.google.dagger:hilt-compiler:2.48.1"
-implementation "javax.inject:javax.inject:1"
+    kapt "com.google.dagger:hilt-compiler:2.48.1"
+    implementation "javax.inject:javax.inject:1"
 
+    implementation "androidx.hilt:hilt-navigation-compose:1.2.0"
 
-implementation "androidx.hilt:hilt-navigation-compose:1.2.0"
+    implementation("androidx.room:room-runtime:2.5.2")
+    implementation("androidx.room:room-ktx:2.5.2")
 
-implementation("androidx.room:room-runtime:2.5.2")
-implementation("androidx.room:room-ktx:2.5.2")
-
-ksp("androidx.room:room-compiler:2.5.2")
+    ksp("androidx.room:room-compiler:2.5.2")
 
     // Firebase Authentication
     implementation platform('com.google.firebase:firebase-bom:33.1.0')
     implementation 'com.google.firebase:firebase-auth'
-
     
+    implementation 'com.google.code.gson:gson:2.10.1'
 }

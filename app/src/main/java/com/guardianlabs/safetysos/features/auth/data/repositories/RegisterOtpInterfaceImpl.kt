@@ -1,28 +1,28 @@
 package com.guardianlabs.safetysos.features.auth.data.repositories
 
 import com.guardianlabs.safetysos.core.data.local.database.dao.UserDao
+import com.guardianlabs.safetysos.core.data.local.database.entities.UserEntity
 import com.guardianlabs.safetysos.core.data.local.preferences.TokenManager
+import com.guardianlabs.safetysos.features.auth.data.network.NetworkResult
 import com.guardianlabs.safetysos.features.auth.data.remote.AuthApiService
 import com.guardianlabs.safetysos.features.auth.data.remote.dto.RegisterOtpRequestDto
 import com.guardianlabs.safetysos.features.auth.domain.models.User
 import com.guardianlabs.safetysos.features.auth.domain.repositories.RegisterOtpInterface
-import com.guardianlabs.safetysos.core.data.local.database.entities.UserEntity
-import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
-class RegisterInterfaceImpl @Inject constructor(
+class RegisterOtpInterfaceImpl @Inject constructor(
     private val api: AuthApiService, 
     private val tokenManager: TokenManager, 
     private val dao: UserDao
 ) : RegisterOtpInterface {
 
-  override suspend fun register(
+    override suspend fun register(
         username: String, 
         phone: String, 
         password: String, 
         uid: String
-    ): Result<User> {
+    ): NetworkResult<User> {
         return try {
             val request = RegisterOtpRequestDto(
                 username = username, 
@@ -31,37 +31,47 @@ class RegisterInterfaceImpl @Inject constructor(
                 uid = uid
             )
             
-            val response = api.registerOtp(request)
-            
-            tokenManager.saveAccessToken(response.accessToken)
-            tokenManager.saveRefreshToken(response.refreshToken)
-            
-            val userObject = UserEntity(
-                uid = response.uid, 
-                username = response.username, 
-                phone = response.phone, 
-                passwordHash = response.passwordHash
-            )
-            
-            dao.setUser(user = userObject)
+            // 1. Make network call (returns Response<RegisterOtpResponseDto>)
+            val httpResponse = api.registerOtp(request)
 
-            val user = User(
-                username = response.username, 
-                phone = response.phone, 
-                uid = response.uid, 
-                navigateToHome = response.navigateToHome
-            )
+            if (httpResponse.isSuccessful && httpResponse.body() != null) {
+                val responseDto = httpResponse.body()!!
 
-            Result.success(user)
+                // Safely save tokens if present
+                responseDto.accessToken?.let { tokenManager.saveAccessToken(it) }
+                responseDto.refreshToken?.let { tokenManager.saveRefreshToken(it) }
+                
+                // Save room cache safely
+                val userEntity = UserEntity(
+                    uid = responseDto.uid ?: "", 
+                    username = responseDto.username ?: "", 
+                    phone = responseDto.phone ?: "", 
+                    passwordHash = responseDto.passwordHash ?: ""
+                )
+                dao.setUser(user = userEntity)
+
+                // Map DTO to Domain Model safely using default values
+                val userDomainModel = User(
+                    username = responseDto.username ?: "", 
+                    phone = responseDto.phone ?: "", 
+                    uid = responseDto.uid ?: "", 
+                    navigateToHome = responseDto.navigateToHome ?: false
+                )
+
+                NetworkResult.Success(userDomainModel)
+            } else {
+                // HTTP Error (400, 401, 500, etc.)
+                val errorMsg = httpResponse.errorBody()?.string() ?: "Registration failed"
+                NetworkResult.Error(message = errorMsg, code = httpResponse.code())
+            }
 
         } catch (e: IOException) {
-            Result.failure(Exception("No internet connection.", e))
-
-        } catch (e: HttpException) {
-            Result.failure(Exception("Server error (${e.code()}).", e))
+            // Internet disconnects / socket timeouts
+            NetworkResult.Error(message = "No internet connection. Please try again.")
 
         } catch (e: Exception) {
-            Result.failure(e)
+            // Catches JSON parsing errors or unhandled exceptions without crashing
+            NetworkResult.Error(message = e.localizedMessage ?: "An unexpected error occurred.")
         }
     }
 }

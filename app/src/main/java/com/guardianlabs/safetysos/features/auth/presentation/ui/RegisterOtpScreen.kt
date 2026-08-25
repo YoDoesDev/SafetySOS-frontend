@@ -1,4 +1,4 @@
- package com.guardianlabs.safetysos.features.auth.presentation.ui
+package com.guardianlabs.safetysos.features.auth.presentation.ui
 
 import android.app.Activity
 import androidx.compose.foundation.background
@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.guardianlabs.safetysos.features.auth.data.network.NetworkResult
+import com.guardianlabs.safetysos.features.auth.domain.models.User
 import com.guardianlabs.safetysos.features.auth.presentation.navigation.AuthRoutes
 import com.guardianlabs.safetysos.features.auth.presentation.ui.components.AuthButton
 import com.guardianlabs.safetysos.features.auth.presentation.ui.components.AuthHeader
@@ -31,122 +33,149 @@ fun RegisterOtpScreen(
     val context = LocalContext.current
     val activity = context as? Activity
 
-    // Collect states directly from your ViewModel
     val otp by viewModel.otp.collectAsState()
-    val error by viewModel.error.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val navigateToHome by viewModel.navigateToHome.collectAsState()
+    val message by viewModel.message.collectAsState()
+    val registrationState by viewModel.registrationState.collectAsState()
 
-    // Single-event navigation trigger
-    LaunchedEffect(navigateToHome) {
-        if (navigateToHome) {
-            navController.navigate(AuthRoutes.Home.route) {
-                popUpTo(AuthRoutes.RegisterOtp.route) { inclusive = true }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // React to NetworkResult state updates
+    LaunchedEffect(registrationState) {
+        when (val state = registrationState) {
+            is NetworkResult.Success -> {
+                val user: User = state.data
+                if (user.navigateToHome) {
+                    navController.navigate(AuthRoutes.Home) {
+                        popUpTo(AuthRoutes.RegisterOtp) {
+                            inclusive = true
+                        }
+                    }
+                    viewModel.resetRegistrationState()
+                }
             }
-            viewModel.onNavigatedToHomeHandled()
+            is NetworkResult.Error -> {
+                snackbarHostState.showSnackbar(state.message)
+            }
+            else -> { /* Idle or Loading - non-side-effect states */ }
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-    ) {
-        Column(
+    // React to message emissions (e.g. "OTP Resent!")
+    LaunchedEffect(message) {
+        val currentMessage = message
+        if (currentMessage != null) {
+            snackbarHostState.showSnackbar(currentMessage)
+            viewModel.clearMessage()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { innerPadding ->
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 28.dp)
-                .align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(colors.background)
         ) {
-
-            AuthHeader(
-                title = "Verify OTP",
-                subtitle = "Enter the 6-digit verification code sent to your mobile number."
-            )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            OutlinedTextField(
-                value = otp,
-                onValueChange = { viewModel.onOtpChanged(it) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("OTP") },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
-                ),
-                shape = MaterialTheme.shapes.large,
-                isError = error != null,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = colors.primary,
-                    unfocusedBorderColor = colors.outline,
-                    focusedLabelColor = colors.primary
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 28.dp)
+                    .align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                AuthHeader(
+                    title = "Verify OTP",
+                    subtitle = "Enter the 6-digit verification code sent to your mobile number."
                 )
-            )
 
-            // Display validation/network errors dynamically
-            if (error != null) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(40.dp))
+
+                OutlinedTextField(
+                    value = otp,
+                    onValueChange = { inputString -> 
+                        viewModel.onOtpChanged(inputString) 
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text("OTP") },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number
+                    ),
+                    shape = MaterialTheme.shapes.large,
+                    isError = registrationState is NetworkResult.Error,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colors.primary,
+                        unfocusedBorderColor = colors.outline,
+                        focusedLabelColor = colors.primary
+                    )
+                )
+
+                if (registrationState is NetworkResult.Error) {
+                    val errorMessage = (registrationState as NetworkResult.Error).message
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = errorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
                 Text(
-                    text = error ?: "",
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 12.sp,
-                    modifier = Modifier.align(Alignment.Start)
+                    text = "Didn't receive the code?",
+                    color = colors.onBackground.copy(alpha = .65f)
                 )
-            }
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = "Didn't receive the code?",
-                color = colors.onBackground.copy(alpha = .65f)
-            )
-
-            TextButton(
-                onClick = {
-                    activity?.let {
-                        viewModel.resendOtp(it)
+                TextButton(
+                    enabled = registrationState !is NetworkResult.Loading,
+                    onClick = {
+                        activity?.let { currentActivity ->
+                            viewModel.resendOtp(currentActivity)
+                        }
                     }
+                ) {
+                    Text("Resend OTP")
                 }
-            ) {
-                Text("Resend OTP")
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            AuthButton(
-                text = if (isLoading) "Verifying..." else "Verify",
-                onClick = {
-                    viewModel.verifyOtp()
-                }
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            HorizontalDivider()
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = "Wrong mobile number?",
-                color = colors.onBackground.copy(alpha = .65f),
-                fontSize = 14.sp
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            TextButton(
-                onClick = {
-                    navController.popBackStack()
-                }
-            ) {
-                Text(
-                    text = "Go Back",
-                    color = colors.primary,
-                    fontWeight = FontWeight.SemiBold
+                AuthButton(
+                    text = if (registrationState is NetworkResult.Loading) "Verifying..." else "Verify",
+                    onClick = {
+                        viewModel.verifyOtp()
+                    }
                 )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Divider()
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "Wrong mobile number?",
+                    color = colors.onBackground.copy(alpha = .65f),
+                    fontSize = 14.sp
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                TextButton(
+                    onClick = {
+                        navController.popBackStack()
+                    }
+                ) {
+                    Text(
+                        text = "Go Back",
+                        color = colors.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
     }

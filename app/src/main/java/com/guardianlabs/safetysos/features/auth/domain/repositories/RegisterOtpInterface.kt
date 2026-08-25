@@ -1,10 +1,13 @@
 package com.guardianlabs.safetysos.features.auth.domain.repositories
 
+import com.guardianlabs.safetysos.features.auth.data.network.NetworkResult
+import com.guardianlabs.safetysos.features.auth.domain.models.User
+
 interface RegisterOtpInterface {
   suspend fun register(
-    val username: String, 
-    val phone: String, 
-    val password: String, 
-    val uid: String
-  ): Result<User>
+    username: String, 
+    phone: String, 
+    password: String, 
+    uid: String
+  ): NetworkResult<User>
 }

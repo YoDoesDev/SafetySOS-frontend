@@ -14,5 +14,5 @@ interface PhoneAuthRepository {
     suspend fun verifyOtpCode(
         verificationId: String,
         userCode: String
-    ): Result<String> // Returns the Firebase idToken string on success
+    ): Result<String>
 }

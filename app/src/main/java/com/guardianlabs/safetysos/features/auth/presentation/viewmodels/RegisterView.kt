@@ -3,15 +3,19 @@ package com.guardianlabs.safetysos.features.auth.presentation.viewmodels
 import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.guardianlabs.safetysos.features.auth.data.network.NetworkResult
+import com.guardianlabs.safetysos.features.auth.domain.models.RegisterCheck
 import com.guardianlabs.safetysos.features.auth.domain.usecase.RegisterCase
 import com.guardianlabs.safetysos.features.auth.domain.usecase.SendOtpUseCase
-import com.guardianlabs.safetysos.features.auth.utils.validators.*
+import com.guardianlabs.safetysos.features.auth.utils.validators.PasswordValidator
+import com.guardianlabs.safetysos.features.auth.utils.validators.PhoneValidator
+import com.guardianlabs.safetysos.features.auth.utils.validators.UsernameValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class RegisterView @Inject constructor(
@@ -30,101 +34,114 @@ class RegisterView @Inject constructor(
 
     private val _confirmPassword = MutableStateFlow("")
     val confirmPassword: StateFlow<String> = _confirmPassword.asStateFlow()
-    
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
 
     private val _verificationId = MutableStateFlow<String?>(null)
     val verificationId: StateFlow<String?> = _verificationId.asStateFlow()
 
     private val _navigateToOtp = MutableStateFlow(false)
-    val navigateToOtp = _navigateToOtp.asStateFlow()
+    val navigateToOtp: StateFlow<Boolean> = _navigateToOtp.asStateFlow()
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    private val _registerCheckState = MutableStateFlow<NetworkResult<RegisterCheck>>(NetworkResult.Idle)
+    val registerCheckState: StateFlow<NetworkResult<RegisterCheck>> = _registerCheckState.asStateFlow()
 
     fun onPhoneChanged(phone: String) {
         _phone.value = phone
+        clearError()
     }
 
     fun onUsernameChanged(username: String) {
         _username.value = username
+        clearError()
     }
 
     fun onPasswordChanged(password: String) {
         _password.value = password
+        clearError()
     }
 
     fun onConfirmPasswordChanged(confirmPassword: String) {
         _confirmPassword.value = confirmPassword
+        clearError()
     }
     
-    fun onNavigatedToOtp() {
+    fun onNavigatedToOtpHandled() {
         _navigateToOtp.value = false
+        _registerCheckState.value = NetworkResult.Idle
     }
     
     fun clearError() {
-        _error.value = null
+        if (_registerCheckState.value is NetworkResult.Error) {
+            _registerCheckState.value = NetworkResult.Idle
+        }
     }
 
     fun createAccount(activity: Activity) {
+        _navigateToOtp.value = false
 
+        // 1. Client-Side Validations
         UsernameValidator.validateUsername(_username.value)?.let {
-            _error.value = it
+            _registerCheckState.value = NetworkResult.Error(it)
             return
         }
 
         PhoneValidator.validatePhone(_phone.value)?.let {
-            _error.value = it
+            _registerCheckState.value = NetworkResult.Error("Format of the phone number is incorrect")
             return
         }
 
         PasswordValidator.validatePassword(_password.value)?.let {
-            _error.value = it
+            _registerCheckState.value = NetworkResult.Error(it)
             return
         }
 
         if (_password.value != _confirmPassword.value) {
-            _error.value = "Passwords do not match."
+            _registerCheckState.value = NetworkResult.Error("Passwords do not match.")
             return
         }
 
-        _error.value = null
-        _isLoading.value = true
-
+        // 2. Perform Backend Pre-Check
         viewModelScope.launch {
-            val result = useCase(
-               phone = _phone.value, 
-               password = _password.value, 
-               username = _username.value
+            _registerCheckState.value = NetworkResult.Loading
+
+            val netResult = useCase(
+                phone = _phone.value, 
+                password = _password.value, 
+                username = _username.value
             )
 
-            result.onSuccess { response ->
-                if (response.navigateToOtp) {
-                    // API succeeded! Now dispatch the Firebase SMS code
-                    val formattedPhone = if (_phone.value.startsWith("+")) _phone.value else "+91${_phone.value}"
+            when (netResult) {
+                is NetworkResult.Success -> {
+                    if (netResult.data.navigateToOtp) {
+                        val formattedPhone = if (_phone.value.startsWith("+")) _phone.value else "+91${_phone.value}"
 
-                    sendOtpUseCase(
-                        phoneNumber = formattedPhone,
-                        activity = activity,
-                        onCodeSent = { id ->
-                            _isLoading.value = false
-                            _verificationId.value = id
-                            _navigateToOtp.value = true
-                        },
-                        onError = { errorMsg ->
-                            _isLoading.value = false
-                            _error.value = errorMsg
-                        }
-                    )
-                } else {
-                    _isLoading.value = false
+                        sendOtpUseCase(
+                            phoneNumber = formattedPhone,
+                            activity = activity,
+                            onCodeSent = { id ->
+                                _verificationId.value = id
+                                _navigateToOtp.value = true
+                                _registerCheckState.value = NetworkResult.Idle
+                            },
+                            onError = { otpError ->
+                                _registerCheckState.value = NetworkResult.Error(
+                                    otpError.ifBlank { "Format of the phone number is incorrect" }
+                                )
+                            }
+                        )
+                    } else {
+                        _registerCheckState.value = NetworkResult.Idle
+                    }
                 }
-            }
+                is NetworkResult.Error -> {
+    val displayError = when {
+        netResult.message.contains("username", ignoreCase = true) -> "Username already used"
+        netResult.message.contains("phone", ignoreCase = true) -> "Phone number already registered"
+        else -> netResult.message.ifBlank { "Validation failed" }
+    }
+    _registerCheckState.value = NetworkResult.Error(displayError)
+}
 
-            result.onFailure { exception ->
-                _isLoading.value = false
-                _error.value = exception.message ?: "Something went wrong."
+                else -> { /* Idle */ }
             }
         }
     }

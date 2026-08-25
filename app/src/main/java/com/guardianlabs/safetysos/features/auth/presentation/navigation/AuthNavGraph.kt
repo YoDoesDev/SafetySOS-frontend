@@ -8,9 +8,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.guardianlabs.safetysos.features.auth.presentation.ui.ForgotPasswordOtpScreen
 import com.guardianlabs.safetysos.features.auth.presentation.ui.ForgotPasswordScreen
 import com.guardianlabs.safetysos.features.auth.presentation.ui.LoginScreen
@@ -35,7 +37,16 @@ fun AuthNavGraph() {
             RegisterScreen(navController)
         }
 
-        composable(AuthRoutes.RegisterOtp) {
+        // Configured with navArguments so path values map directly to SavedStateHandle
+        composable(
+            route = AuthRoutes.RegisterOtp,
+            arguments = listOf(
+                navArgument("verificationId") { type = NavType.StringType },
+                navArgument("phone") { type = NavType.StringType },
+                navArgument("username") { type = NavType.StringType },
+                navArgument("password") { type = NavType.StringType }
+            )
+        ) {
             RegisterOtpScreen(navController)
         }
 
