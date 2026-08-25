@@ -2,18 +2,22 @@ package com.guardianlabs.safetysos.features.auth.presentation.viewmodels
 
 import android.app.Activity
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.guardianlabs.safetysos.features.auth.data.network.NetworkResult
+import com.guardianlabs.safetysos.features.auth.domain.usecase.ForgotPasswordCase
 import com.guardianlabs.safetysos.features.auth.domain.usecase.SendOtpUseCase
 import com.guardianlabs.safetysos.features.auth.utils.validators.PhoneValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ForgotPasswordView @Inject constructor(
-    private val sendOtpUseCase: SendOtpUseCase
+    private val sendOtpUseCase: SendOtpUseCase,
+    private val forgotPwCase: ForgotPasswordCase
 ) : ViewModel() {
 
     private val _phone = MutableStateFlow("")
@@ -58,20 +62,45 @@ class ForgotPasswordView @Inject constructor(
             "+91${_phone.value}"
         }
 
-        sendOtpUseCase(
-            phoneNumber = formattedPhone,
-            activity = activity,
-            onCodeSent = { id ->
-                _verificationId.value = id
-                _navigateToOtp.value = true
-                _forgotPasswordState.value = NetworkResult.Idle
-            },
-            onError = { otpError ->
-                _forgotPasswordState.value = NetworkResult.Error(
-                    otpError.ifBlank { "Failed to send OTP. Please try again." }
-                )
+        viewModelScope.launch {
+            when (val result = forgotPwCase(formattedPhone)) {
+                is NetworkResult.Success -> {
+                    val responseDto = result.data
+                    if (responseDto.exists) {
+                        sendOtpUseCase(
+                            phoneNumber = formattedPhone,
+                            activity = activity,
+                            onCodeSent = { id ->
+                                _verificationId.value = id
+                                _navigateToOtp.value = true
+                                _forgotPasswordState.value = NetworkResult.Idle
+                            },
+                            onError = { otpError ->
+                                _forgotPasswordState.value = NetworkResult.Error(
+                                    otpError.ifBlank { "Failed to send OTP. Please try again." }
+                                )
+                            }
+                        )
+                    } else {
+                        _forgotPasswordState.value = NetworkResult.Error(
+                            responseDto.reason ?: "This phone number is not registered."
+                        )
+                    }
+                }
+
+                is NetworkResult.Error -> {
+                    _forgotPasswordState.value = NetworkResult.Error(
+                        result.data.reason ?: "Failed to verify phone number."
+                    )
+                }
+
+                is NetworkResult.Loading -> {
+                    _forgotPasswordState.value = NetworkResult.Loading
+                }
+
+                else -> Unit
             }
-        )
+        }
     }
 
     fun resetState() {

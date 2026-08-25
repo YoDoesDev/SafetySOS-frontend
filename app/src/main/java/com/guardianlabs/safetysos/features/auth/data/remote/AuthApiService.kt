@@ -22,5 +22,9 @@ interface AuthApiService {
         @Body request: LoginRequestDto
     ): Response<LoginResponseDto>
 
-
+    @POST("auth/check-phone")
+    suspend fun checkPhone(
+        @Body request: ForgotPasswordRequestDto
+    ): Response<ForgotPasswordResponseDto>
+    
 }

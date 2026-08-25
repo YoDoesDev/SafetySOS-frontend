@@ -30,22 +30,24 @@ fun ForgotPasswordScreen(
     val activity = context as? Activity
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val phone by viewModel.phone.collectAsState()
+    val verificationId by viewModel.verificationId.collectAsState()
     val navigateToOtp by viewModel.navigateToOtp.collectAsState()
     val forgotPasswordState by viewModel.forgotPasswordState.collectAsState()
-    val phone by viewModel.phone.collectAsState()
-    val verificationId by viewModel.phone.collectAsState()
-    
 
     val isLoading = forgotPasswordState is NetworkResult.Loading
 
-    // Handle navigation when OTP is dispatched
-    LaunchedEffect(navigateToOtp) {
-        if (navigateToOtp) {
+    // Trigger navigation only when navigateToOtp is true AND verificationId is received
+    LaunchedEffect(navigateToOtp, verificationId) {
+        if (navigateToOtp && !verificationId.isNullOrEmpty()) {
+            val validVerificationId = verificationId.orEmpty()
             viewModel.onNavigatedToOtpHandled()
-            navController.navigate(AuthRoutes.forgotPwOtp(
-                verificationId.orEmpty(),
-                phone
-            )) {
+            navController.navigate(
+                AuthRoutes.forgotPwOtp(
+                    validVerificationId,
+                    phone
+                )
+            ) {
                 launchSingleTop = true
             }
         }
@@ -53,15 +55,17 @@ fun ForgotPasswordScreen(
 
     // Display error messages via Snackbar
     LaunchedEffect(forgotPasswordState) {
-        if (forgotPasswordState is NetworkResult.Error) {
-            val errorMessage = (forgotPasswordState as NetworkResult.Error).message
-            snackbarHostState.showSnackbar(
-                message = errorMessage,
-                duration = SnackbarDuration.Short
-            )
-            viewModel.clearError()
-        }
+    val state = forgotPasswordState
+    if (state is NetworkResult.Error) {
+        val message = state.message
+        viewModel.clearError() // Reset state FIRST so re-triggers are safe
+        snackbarHostState.showSnackbar(
+            message = message,
+            duration = SnackbarDuration.Short
+        )
     }
+}
+
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -99,7 +103,7 @@ fun ForgotPasswordScreen(
 
                 AuthButton(
                     text = if (isLoading) "Sending..." else "Send OTP",
-                    
+                    enabled = !isLoading,
                     onClick = {
                         activity?.let {
                             viewModel.sendOtp(it)
