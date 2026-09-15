@@ -1,6 +1,6 @@
 # Package Refactoring Summary: SafetySOS → ResQ
 
-## Overview
+## Overview 
 Complete package and app name refactoring for the SafetySOS Android application.
 
 **Old Package Name:** `com.guardianlabs.safetysos`
