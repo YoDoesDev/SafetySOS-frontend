@@ -31,8 +31,9 @@ class LoginInterfaceImpl @Inject constructor(
                     
                     if (!refreshToken.isNullOrBlank()) {
                         tokenManager.saveRefreshToken(refreshToken)
+                        tokenManager.resetSessionExpiry()
                     }
-
+                    tokenManager.resetSessionExpiry()
                     NetworkResult.Success(LoginResult(accessToken = accessToken, refreshToken = refreshToken))
                 } else {
                     NetworkResult.Error("Authentication token missing")

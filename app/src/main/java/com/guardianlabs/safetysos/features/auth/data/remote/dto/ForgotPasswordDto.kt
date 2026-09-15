@@ -1,4 +1,4 @@
- package com.guardianlabs.safetysos.features.auth.data.remote.dto
+package com.guardianlabs.safetysos.features.auth.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 

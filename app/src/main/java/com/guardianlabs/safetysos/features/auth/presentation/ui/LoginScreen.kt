@@ -1,9 +1,10 @@
 package com.guardianlabs.safetysos.features.auth.presentation.ui
 
+import android.app.Activity
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
@@ -14,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -25,6 +27,7 @@ import com.guardianlabs.safetysos.features.auth.presentation.ui.components.AuthB
 import com.guardianlabs.safetysos.features.auth.presentation.ui.components.AuthHeader
 import com.guardianlabs.safetysos.features.auth.presentation.ui.components.ComposableCountryPhoneInput
 import com.guardianlabs.safetysos.features.auth.presentation.viewmodel.LoginView
+import com.guardianlabs.safetysos.features.home.presentation.HomeActivity
 
 @Composable
 fun LoginScreen(
@@ -35,6 +38,7 @@ fun LoginScreen(
     val passwordVisible by viewModel.passwordVisible.collectAsState()
     val loginState by viewModel.loginState.collectAsState()
     val navigateToHome by viewModel.navigateToHome.collectAsState()
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val colors = MaterialTheme.colorScheme
 
@@ -42,9 +46,8 @@ fun LoginScreen(
         when (val state = loginState) {
             is NetworkResult.Success -> {
                 viewModel.resetState()
-                navController.navigate("home") {
-                    popUpTo(AuthRoutes.Login) { inclusive = true }
-                }
+                context.startActivity(Intent(context, HomeActivity::class.java))
+                (context as? Activity)?.finish()
             }
             is NetworkResult.Error -> {
                 snackbarHostState.showSnackbar(state.message)
@@ -55,15 +58,12 @@ fun LoginScreen(
     }
     
     LaunchedEffect(navigateToHome) {
-    if (navigateToHome) {
-        navController.navigate(AuthRoutes.Home) {
-            popUpTo(AuthRoutes.Login) {
-                inclusive = true
-            }
+        if (navigateToHome) {
+            context.startActivity(Intent(context, HomeActivity::class.java))
+            (context as? Activity)?.finish()
+            viewModel.onNavigatedToHomeHandled()
         }
-        viewModel.onNavigatedToHomeHandled()
     }
-}
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }

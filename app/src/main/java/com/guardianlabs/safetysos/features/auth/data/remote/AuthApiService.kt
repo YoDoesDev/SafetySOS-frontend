@@ -27,4 +27,9 @@ interface AuthApiService {
         @Body request: ForgotPasswordRequestDto
     ): Response<ForgotPasswordResponseDto>
     
+    @POST("auth/forgot-password-login")
+    suspend fun forgotPasswordLogin(
+        @Body request: ForgotPasswordOtpRequestDto
+    ): Response<ForgotPasswordOtpResponseDto>
+    
 }

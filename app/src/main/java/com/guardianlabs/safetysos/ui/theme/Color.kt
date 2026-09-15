@@ -12,4 +12,4 @@ val TextDark = Color(0xFF111111)
 // Dark Theme
 val BackgroundDark = Color(0xFF121212)
 val SurfaceDark = Color(0xFF1E1E1E)
-val TextLight = Color.White
+val TextLight = Color.White 

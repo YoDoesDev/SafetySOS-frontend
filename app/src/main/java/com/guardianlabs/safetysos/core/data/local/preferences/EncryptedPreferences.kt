@@ -24,47 +24,48 @@ class EncryptedPrefs @Inject constructor(
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
-    fun putString(key: String, value: String) {
-        prefs.edit().putString(key, value).apply()
+    // ✅ Synchronous commit() ensures disk write before thread continues
+    fun putString(key: String, value: String): Boolean {
+        return prefs.edit().putString(key, value).commit()
     }
 
     fun getString(key: String): String? {
         return prefs.getString(key, null)
     }
 
-    fun putInt(key: String, value: Int) {
-        prefs.edit().putInt(key, value).apply()
+    fun putInt(key: String, value: Int): Boolean {
+        return prefs.edit().putInt(key, value).commit()
     }
 
     fun getInt(key: String): Int {
         return prefs.getInt(key, 0)
     }
 
-    fun putBoolean(key: String, value: Boolean) {
-        prefs.edit().putBoolean(key, value).apply()
+    fun putBoolean(key: String, value: Boolean): Boolean {
+        return prefs.edit().putBoolean(key, value).commit()
     }
 
     fun getBoolean(key: String): Boolean {
         return prefs.getBoolean(key, false)
     }
 
-    fun putLong(key: String, value: Long) {
-        prefs.edit().putLong(key, value).apply()
+    fun putLong(key: String, value: Long): Boolean {
+        return prefs.edit().putLong(key, value).commit()
     }
 
     fun getLong(key: String): Long {
         return prefs.getLong(key, 0L)
     }
 
-    fun remove(key: String) {
-        prefs.edit().remove(key).apply()
+    fun remove(key: String): Boolean {
+        return prefs.edit().remove(key).commit()
     }
 
     fun contains(key: String): Boolean {
         return prefs.contains(key)
     }
 
-    fun clear() {
-        prefs.edit().clear().apply()
+    fun clear(): Boolean {
+        return prefs.edit().clear().commit()
     }
 }

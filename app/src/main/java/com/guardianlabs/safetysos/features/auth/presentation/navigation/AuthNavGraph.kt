@@ -29,49 +29,55 @@ fun AuthNavGraph() {
         startDestination = AuthRoutes.Login
     ) {
 
+        // Login
         composable(AuthRoutes.Login) {
             LoginScreen(navController)
         }
 
+        // Register
         composable(AuthRoutes.Register) {
             RegisterScreen(navController)
         }
 
-        // Configured with navArguments so path values map directly to SavedStateHandle
+        // Register OTP
         composable(
             route = AuthRoutes.RegisterOtp,
             arguments = listOf(
-                navArgument("verificationId") { type = NavType.StringType },
-                navArgument("phone") { type = NavType.StringType },
-                navArgument("username") { type = NavType.StringType },
-                navArgument("password") { type = NavType.StringType }
+                navArgument("verificationId") {
+                    type = NavType.StringType
+                },
+                navArgument("phone") {
+                    type = NavType.StringType
+                },
+                navArgument("username") {
+                    type = NavType.StringType
+                },
+                navArgument("password") {
+                    type = NavType.StringType
+                }
             )
         ) {
             RegisterOtpScreen(navController)
         }
 
+        // Forgot Password
         composable(AuthRoutes.ForgotPassword) {
             ForgotPasswordScreen(navController)
         }
 
-        composable(AuthRoutes.ForgotPasswordOtp) {
+        // Forgot Password OTP
+        composable(
+            route = AuthRoutes.ForgotPasswordOtp,
+            arguments = listOf(
+                navArgument("verificationId") {
+                    type = NavType.StringType
+                },
+                navArgument("phone") {
+                    type = NavType.StringType
+                }
+            )
+        ) {
             ForgotPasswordOtpScreen(navController)
         }
-
-        composable(AuthRoutes.Home) {
-            // Placeholder for main app home screen
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Welcome to SafetySOS!",
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        }
-
     }
 }

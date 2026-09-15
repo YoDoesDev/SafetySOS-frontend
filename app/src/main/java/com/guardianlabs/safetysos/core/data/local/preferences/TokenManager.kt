@@ -2,7 +2,6 @@ package com.guardianlabs.safetysos.core.data.local.preferences
 
 import javax.inject.Inject
 import javax.inject.Singleton
-import com.guardianlabs.safetysos.core.data.local.preferences.EncryptedPrefs
 
 @Singleton
 class TokenManager @Inject constructor(
@@ -12,26 +11,66 @@ class TokenManager @Inject constructor(
     private companion object {
         const val ACCESS_TOKEN = "access_token"
         const val REFRESH_TOKEN = "refresh_token"
+        const val SESSION_EXPIRY = "session_expiry"
+        
+        // 90 days in milliseconds (90 days * 24 hrs * 60 mins * 60 secs * 1000 ms)
+        const val NINETY_DAYS_IN_MS = 90L * 24 * 60 * 60 * 1000
     }
 
-    fun saveAccessToken(token: String) {
-        prefs.putString(ACCESS_TOKEN, token)
+    fun saveAccessToken(token: String?) {
+        if (!token.isNullOrBlank()) {
+            prefs.putString(ACCESS_TOKEN, token)
+        } else {
+            clearAccessToken()
+        }
     }
 
     fun getAccessToken(): String? {
-        return prefs.getString(ACCESS_TOKEN)
+        val token = prefs.getString(ACCESS_TOKEN)
+        return if (token.isNullOrBlank()) null else token
     }
 
-    fun saveRefreshToken(token: String) {
-        prefs.putString(REFRESH_TOKEN, token)
+    fun saveRefreshToken(token: String?) {
+        if (!token.isNullOrBlank()) {
+            prefs.putString(REFRESH_TOKEN, token)
+        } else {
+            clearRefreshToken()
+        }
     }
 
     fun getRefreshToken(): String? {
-        return prefs.getString(REFRESH_TOKEN)
+        val token = prefs.getString(REFRESH_TOKEN)
+        return if (token.isNullOrBlank()) null else token
+    }
+
+    /**
+     * Resets the native 90-day offline session expiry to (currentTime + 90 days).
+     * Call this whenever a login, token refresh, or successful background sync occurs.
+     */
+    fun resetSessionExpiry() {
+        val futureExpiryMs = System.currentTimeMillis() + NINETY_DAYS_IN_MS
+        prefs.putLong(SESSION_EXPIRY, futureExpiryMs)
+    }
+
+    fun getSessionExpiry(): Long {
+        return prefs.getLong(SESSION_EXPIRY)
+    }
+
+    /**
+     * Returns true if a refresh token exists AND the native local session hasn't hit 90 days.
+     */
+    fun isSessionValidLocally(): Boolean {
+        val hasRefreshToken = !getRefreshToken().isNullOrBlank()
+        val isNotExpired = System.currentTimeMillis() < getSessionExpiry()
+        return hasRefreshToken && isNotExpired
     }
 
     fun hasAccessToken(): Boolean {
-        return prefs.contains(ACCESS_TOKEN)
+        return !getAccessToken().isNullOrBlank()
+    }
+    
+    fun hasRefreshToken(): Boolean {
+        return !getRefreshToken().isNullOrBlank()
     }
 
     fun clearAccessToken() {
@@ -42,8 +81,13 @@ class TokenManager @Inject constructor(
         prefs.remove(REFRESH_TOKEN)
     }
 
+    fun clearSessionExpiry() {
+        prefs.remove(SESSION_EXPIRY)
+    }
+
     fun clearTokens() {
         clearAccessToken()
         clearRefreshToken()
+        clearSessionExpiry()
     }
 }

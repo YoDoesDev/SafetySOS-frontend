@@ -38,15 +38,21 @@ class RegisterOtpInterfaceImpl @Inject constructor(
                 val responseDto = httpResponse.body()!!
 
                 // Safely save tokens if present
-                responseDto.accessToken?.let { tokenManager.saveAccessToken(it) }
-                responseDto.refreshToken?.let { tokenManager.saveRefreshToken(it) }
+                responseDto.accessToken?.let {
+                    tokenManager.saveAccessToken(it) 
+                    tokenManager.resetSessionExpiry()
+                }
+                responseDto.refreshToken?.let {
+                    tokenManager.saveRefreshToken(it) 
+                    tokenManager.resetSessionExpiry()
+                }
+                
                 
                 // Save room cache safely
                 val userEntity = UserEntity(
                     uid = responseDto.uid ?: "", 
                     username = responseDto.username ?: "", 
-                    phone = responseDto.phone ?: "", 
-                    passwordHash = responseDto.passwordHash ?: ""
+                    phone = responseDto.phone ?: ""
                 )
                 dao.setUser(user = userEntity)
 

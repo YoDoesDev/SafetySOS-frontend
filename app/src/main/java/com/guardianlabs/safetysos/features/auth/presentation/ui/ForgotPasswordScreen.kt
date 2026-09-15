@@ -1,4 +1,4 @@
- package com.guardianlabs.safetysos.features.auth.presentation.ui
+package com.guardianlabs.safetysos.features.auth.presentation.ui
 
 import android.app.Activity
 import androidx.compose.foundation.background
@@ -25,56 +25,55 @@ fun ForgotPasswordScreen(
     navController: NavController,
     viewModel: ForgotPasswordView = hiltViewModel()
 ) {
-    val colors = MaterialTheme.colorScheme
     val context = LocalContext.current
     val activity = context as? Activity
-    val snackbarHostState = remember { SnackbarHostState() }
+    val colors = MaterialTheme.colorScheme
 
     val phone by viewModel.phone.collectAsState()
-    val verificationId by viewModel.verificationId.collectAsState()
     val navigateToOtp by viewModel.navigateToOtp.collectAsState()
+    val verificationId by viewModel.verificationId.collectAsState()
     val forgotPasswordState by viewModel.forgotPasswordState.collectAsState()
 
-    val isLoading = forgotPasswordState is NetworkResult.Loading
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    // Trigger navigation only when navigateToOtp is true AND verificationId is received
-    LaunchedEffect(navigateToOtp, verificationId) {
-        if (navigateToOtp && !verificationId.isNullOrEmpty()) {
-            val validVerificationId = verificationId.orEmpty()
-            viewModel.onNavigatedToOtpHandled()
-            navController.navigate(
-                AuthRoutes.forgotPwOtp(
-                    validVerificationId,
-                    phone
-                )
-            ) {
-                launchSingleTop = true
-            }
+    // React to Error state WITHOUT instantly resetting it
+    LaunchedEffect(forgotPasswordState) {
+    if (forgotPasswordState is NetworkResult.Error) {
+        val errorMsg = (forgotPasswordState as NetworkResult.Error).message
+        if (errorMsg.isNotBlank()) {
+            snackbarHostState.showSnackbar(errorMsg)
+            viewModel.clearError() // Reset state to NetworkResult.Idle after showing
         }
     }
+}
 
-    // Display error messages via Snackbar safely
-    LaunchedEffect(forgotPasswordState) {
-        val state = forgotPasswordState
-        if (state is NetworkResult.Error) {
-            val message = state.message
-            viewModel.clearError() // Reset state FIRST so re-triggers are safe
-            snackbarHostState.showSnackbar(
-                message = message,
-                duration = SnackbarDuration.Short
+
+    // React to Navigate to OTP trigger
+    LaunchedEffect(navigateToOtp) {
+        if (navigateToOtp) {
+            navController.navigate(
+                AuthRoutes.forgotPwOtp(
+                    verificationId.orEmpty(),
+                    phone
+                )
             )
+            viewModel.onNavigatedToOtpHandled()
         }
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { innerPadding ->
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
+    ) { padding ->
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(padding)
                 .background(colors.background)
         ) {
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -101,8 +100,7 @@ fun ForgotPasswordScreen(
                 Spacer(modifier = Modifier.height(30.dp))
 
                 AuthButton(
-                    text = if (isLoading) "Sending..." else "Send OTP",
-                    enabled = !isLoading,
+                    text = if (forgotPasswordState is NetworkResult.Loading) "Sending..." else "Send OTP",
                     onClick = {
                         activity?.let {
                             viewModel.sendOtp(it)
@@ -118,7 +116,7 @@ fun ForgotPasswordScreen(
 
                 Text(
                     text = "Remember your password?",
-                    color = colors.onBackground.copy(alpha = 0.65f)
+                    color = colors.onBackground.copy(alpha = .65f)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -133,6 +131,7 @@ fun ForgotPasswordScreen(
                         color = colors.primary
                     )
                 }
+
             }
         }
     }

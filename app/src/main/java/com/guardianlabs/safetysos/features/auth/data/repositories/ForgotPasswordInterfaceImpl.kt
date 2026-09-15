@@ -1,41 +1,52 @@
 package com.guardianlabs.safetysos.features.auth.data.repositories
 
-import com.google.gson.Gson
+
 import com.guardianlabs.safetysos.features.auth.data.network.NetworkResult
 import com.guardianlabs.safetysos.features.auth.data.remote.AuthApiService
 import com.guardianlabs.safetysos.features.auth.data.remote.dto.ForgotPasswordRequestDto
-import com.guardianlabs.safetysos.features.auth.data.remote.dto.ForgotPasswordResponseDto
+import com.guardianlabs.safetysos.features.auth.domain.models.ForgotPasswordCheck
 import com.guardianlabs.safetysos.features.auth.domain.repositories.ForgotPasswordInterface
+import java.io.IOException
 import javax.inject.Inject
 
 class ForgotPasswordInterfaceImpl @Inject constructor(
-    private val apiService: AuthApiService,
-    private val gson: Gson
+    private val api: AuthApiService, 
 ) : ForgotPasswordInterface {
 
-    override suspend fun checkPhone(phone: String): NetworkResult<ForgotPasswordResponseDto> {
+    override suspend fun checkPhone(phone: String): NetworkResult<ForgotPasswordCheck> {
         return try {
-            val response = apiService.checkPhone(ForgotPasswordRequestDto(phone))
-            val body = response.body()
+            val request = ForgotPasswordRequestDto(phone = phone)
+            val httpResponse = api.checkPhone(request)
 
-            if (response.isSuccessful && body != null) {
-                NetworkResult.Success(body)
+            if (httpResponse.isSuccessful && httpResponse.body() != null) {
+                val responseDto = httpResponse.body()!!
+
+                val checkDomain = ForgotPasswordCheck(
+                    navigateToOtp = responseDto.success
+                )
+
+                NetworkResult.Success(checkDomain)
             } else {
-                // Parse non-200 error response JSON { "success": false, "reason": "..." }
-                val errorReason = try {
-                    val errorJson = response.errorBody()?.string()
-                    val parsedError = gson.fromJson(errorJson, ForgotPasswordResponseDto::class.java)
-                    parsedError?.reason
+                // 1. Read the raw error JSON payload
+                val rawError = httpResponse.errorBody()?.string().orEmpty().trim()
+
+                // 2. Extract the "reason" key from the non-200 error response
+                val cleanMessage = try {
+                    val json = org.json.JSONObject(rawError)
+                    // Check "reason" first, then fallback keys if missing
+                    json.optString("reason", json.optString("message", "Validation failed"))
                 } catch (e: Exception) {
-                    null
+                    rawError.takeIf { it.isNotBlank() } ?: "Validation failed (${httpResponse.code()})"
                 }
 
-                NetworkResult.Error(
-                    errorReason ?: "Server error (${response.code()}). Please try again."
-                )
+                NetworkResult.Error(message = cleanMessage, code = httpResponse.code())
             }
+
+        } catch (e: IOException) {
+            NetworkResult.Error("No internet connection. Please try again.")
+
         } catch (e: Exception) {
-            NetworkResult.Error(e.localizedMessage ?: "Network connection error.")
+            NetworkResult.Error(e.localizedMessage ?: "An unexpected error occurred.")
         }
     }
 }

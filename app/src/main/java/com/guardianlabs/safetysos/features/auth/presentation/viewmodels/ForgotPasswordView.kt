@@ -1,9 +1,10 @@
- package com.guardianlabs.safetysos.features.auth.presentation.viewmodels
+package com.guardianlabs.safetysos.features.auth.presentation.viewmodels
 
 import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.guardianlabs.safetysos.features.auth.data.network.NetworkResult
+import com.guardianlabs.safetysos.features.auth.domain.models.ForgotPasswordCheck
 import com.guardianlabs.safetysos.features.auth.domain.usecase.ForgotPasswordCase
 import com.guardianlabs.safetysos.features.auth.domain.usecase.SendOtpUseCase
 import com.guardianlabs.safetysos.features.auth.utils.validators.PhoneValidator
@@ -16,8 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ForgotPasswordView @Inject constructor(
-    private val sendOtpUseCase: SendOtpUseCase,
-    private val forgotPwCase: ForgotPasswordCase
+    private val forgotPwCase: ForgotPasswordCase,
+    private val sendOtpUseCase: SendOtpUseCase
 ) : ViewModel() {
 
     private val _phone = MutableStateFlow("")
@@ -29,11 +30,11 @@ class ForgotPasswordView @Inject constructor(
     private val _navigateToOtp = MutableStateFlow(false)
     val navigateToOtp: StateFlow<Boolean> = _navigateToOtp.asStateFlow()
 
-    private val _forgotPasswordState = MutableStateFlow<NetworkResult<Unit>>(NetworkResult.Idle)
-    val forgotPasswordState: StateFlow<NetworkResult<Unit>> = _forgotPasswordState.asStateFlow()
+    private val _forgotPasswordState = MutableStateFlow<NetworkResult<Any>>(NetworkResult.Idle)
+    val forgotPasswordState: StateFlow<NetworkResult<Any>> = _forgotPasswordState.asStateFlow()
 
-    fun onPhoneChanged(newPhone: String) {
-        _phone.value = newPhone
+    fun onPhoneChanged(phone: String) {
+        _phone.value = phone
         clearError()
     }
 
@@ -49,24 +50,24 @@ class ForgotPasswordView @Inject constructor(
     }
 
     fun sendOtp(activity: Activity) {
+        _navigateToOtp.value = false
+
+        // 1. Client-Side Validation
         PhoneValidator.validatePhone(_phone.value)?.let {
             _forgotPasswordState.value = NetworkResult.Error("Format of the phone number is incorrect")
             return
         }
 
-        _forgotPasswordState.value = NetworkResult.Loading
-
-        val formattedPhone = if (_phone.value.startsWith("+")) {
-            _phone.value
-        } else {
-            "+91${_phone.value}"
-        }
-
         viewModelScope.launch {
-            when (val result = forgotPwCase(formattedPhone)) {
-                is NetworkResult.Success -> {
-                    val responseDto = result.data
-                    if (responseDto.success) {
+    _forgotPasswordState.value = NetworkResult.Loading
+
+    val netResult = forgotPwCase(_phone.value)
+
+    when (netResult) {
+        is NetworkResult.Success -> {
+            if (netResult.data.navigateToOtp) {
+                        val formattedPhone = if (_phone.value.startsWith("+")) _phone.value else "+91${_phone.value}"
+
                         sendOtpUseCase(
                             phoneNumber = formattedPhone,
                             activity = activity,
@@ -77,30 +78,24 @@ class ForgotPasswordView @Inject constructor(
                             },
                             onError = { otpError ->
                                 _forgotPasswordState.value = NetworkResult.Error(
-                                    otpError.ifBlank { "Failed to send OTP. Please try again." }
+                                    otpError.ifBlank { "Format of the phone number is incorrect" }
                                 )
                             }
                         )
                     } else {
-                        _forgotPasswordState.value = NetworkResult.Error(
-                            responseDto.reason ?: "This phone number is not registered."
-                        )
-                    }
-                }
-
-                is NetworkResult.Error -> {
-                    _forgotPasswordState.value = NetworkResult.Error(
-                        result.message ?: "Failed to verify phone number."
-                    )
-                }
-
-                is NetworkResult.Loading -> {
-                    _forgotPasswordState.value = NetworkResult.Loading
-                }
-
-                else -> Unit
+                _forgotPasswordState.value = NetworkResult.Idle
             }
         }
+
+        is NetworkResult.Error -> {
+            val displayError = netResult.message.ifBlank { "Phone number verification failed." }
+            _forgotPasswordState.value = NetworkResult.Error(displayError)
+        }
+
+        else -> { /* Idle */ }
+    }
+}
+
     }
 
     fun resetState() {

@@ -11,5 +11,4 @@ data class UserEntity(
 
     val username: String,
     val phone: String,
-    val passwordHash: String
 ) 

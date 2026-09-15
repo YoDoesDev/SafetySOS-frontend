@@ -7,7 +7,7 @@ import com.guardianlabs.safetysos.core.data.local.database.entities.UserEntity
 
 @Database(
     entities = [UserEntity::class],
-    version = 1
+    version = 2
 )
 abstract class Database : RoomDatabase() {
 

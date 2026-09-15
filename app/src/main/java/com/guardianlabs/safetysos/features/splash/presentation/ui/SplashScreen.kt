@@ -1,58 +1,53 @@
 package com.guardianlabs.safetysos.features.splash.presentation.ui
 
+import android.app.Activity
+import android.content.Intent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
-import com.guardianlabs.safetysos.features.splash.presentation.viewmodels.SplashViewModel
-import com.guardianlabs.safetysos.features.splash.presentation.navigation.SplashDestination
-import androidx.compose.runtime.LaunchedEffect
-import android.app.Activity
-import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.guardianlabs.safetysos.R
+import com.guardianlabs.safetysos.core.AppDestinations
 import com.guardianlabs.safetysos.features.auth.presentation.AuthActivity
+import com.guardianlabs.safetysos.features.home.presentation.HomeActivity
+import com.guardianlabs.safetysos.features.splash.presentation.viewmodels.SplashView
 
 @Composable
-fun SplashScreen() {
-    
-    val viewModel: SplashViewModel = viewModel()
+fun SplashScreen(
+    viewModel: SplashView = hiltViewModel()
+) {
     val destination by viewModel.destination.collectAsState()
     val context = LocalContext.current
-    
+
     LaunchedEffect(destination) {
-
-    when (destination) {
-
-        SplashDestination.AUTH -> {
-            context.startActivity(
-    Intent(
-        context,
-        AuthActivity::class.java
-    )
-)
-
-(context as? Activity)?.finish()
+        val targetActivity = when (destination) {
+            AppDestinations.AUTH -> AuthActivity::class.java
+            AppDestinations.HOME -> HomeActivity::class.java
+            else -> null
         }
 
-        SplashDestination.HOME -> {
-            // TODO:
-            // Navigate to Home
+        targetActivity?.let { activityClass ->
+            val intent = Intent(context, activityClass).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            context.startActivity(intent)
+            (context as? Activity)?.finish()
         }
-
-        null -> Unit
     }
-}
-
 
     val colors = MaterialTheme.colorScheme
 
@@ -62,30 +57,25 @@ fun SplashScreen() {
             .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
-
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-
-            Text(
-                text = "SafetySOS",
-                fontSize = 34.sp,
-                fontWeight = FontWeight.Bold,
-                color = colors.primary
+            // ResQ Logo Image (Ensure resq_logo is added in res/drawable)
+            Image(
+                painter = painterResource(id = R.drawable.resq_logo),
+                contentDescription = "ResQ Logo",
+                modifier = Modifier
+                    .size(220.dp)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Stay Protected. Stay Connected.",
-                color = colors.onBackground.copy(alpha = 0.7f)
-            )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
+            /* 
             CircularProgressIndicator(
-                color = colors.primary
+                color = colors.primary,
+                strokeWidth = 3.dp,
+                modifier = Modifier.size(32.dp)
             )
+            */
         }
     }
 }

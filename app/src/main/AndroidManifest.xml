@@ -17,56 +17,57 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     
     <application
-    android:name=".SafetySOSApp"
-    android:allowBackup="true"
-    android:icon="@mipmap/ic_launcher"
-    android:label="@string/app_name"
-    android:roundIcon="@mipmap/ic_launcher_round"
-    android:supportsRtl="true"
-    android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+        android:name=".SafetySOSApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Material3.DayNight.NoActionBar">
 
-    <!-- Splash Activity (Launcher) -->
-    <activity
-        android:name=".features.splash.presentation.SplashActivity"
-        android:exported="true">
+        <!-- Splash Activity (Launcher) -->
+        <activity
+            android:name=".features.splash.presentation.SplashActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+        <!-- Authentication Activity -->
+        <activity
+            android:name=".features.auth.presentation.AuthActivity"
+            android:exported="false" />
 
-    </activity>
+        <!-- Home Activity (FIX: Declared here to fix crash on transition) -->
+        <activity
+            android:name=".features.home.presentation.HomeActivity"
+            android:exported="false" />
 
-    <!-- Authentication Activity -->
-    <activity
-        android:name=".features.auth.presentation.AuthActivity"
-        android:exported="false" />
+        <!-- Background Service for Hardware Button Hooking & Safety Monitoring -->
+        <service
+            android:name=".services.SafetyBackgroundService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
 
-    <!-- Background Service for Hardware Button Hooking & Safety Monitoring -->
-    <service
-        android:name=".services.SafetyBackgroundService"
-        android:enabled="true"
-        android:exported="false"
-        android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FOCUSED_SERVICE"
+                android:value="Provides real-time personal safety monitoring and emergency trigger mechanisms." />
 
-        <property
-            android:name="android.app.PROPERTY_SPECIAL_USE_FOCUSED_SERVICE"
-            android:value="Provides real-time personal safety monitoring and emergency trigger mechanisms." />
+        </service>
 
-    </service>
+        <!-- Broadcast Receiver to Restart Services Automatically After Device Reboot -->
+        <receiver
+            android:name=".receivers.BootReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
-    <!-- Broadcast Receiver to Restart Services Automatically After Device Reboot -->
-    <receiver
-        android:name=".receivers.BootReceiver"
-        android:enabled="true"
-        android:exported="false">
-
-        <intent-filter>
-            <action android:name="android.intent.action.BOOT_COMPLETED" />
-        </intent-filter>
-
-    </receiver>
-
-</application>
+    </application>
     
 </manifest>

@@ -1,6 +1,7 @@
 package com.guardianlabs.safetysos.features.auth.presentation.ui
 
 import android.app.Activity
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -19,10 +20,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.guardianlabs.safetysos.features.auth.data.network.NetworkResult
 import com.guardianlabs.safetysos.features.auth.domain.models.User
-import com.guardianlabs.safetysos.features.auth.presentation.navigation.AuthRoutes
 import com.guardianlabs.safetysos.features.auth.presentation.ui.components.AuthButton
 import com.guardianlabs.safetysos.features.auth.presentation.ui.components.AuthHeader
 import com.guardianlabs.safetysos.features.auth.presentation.viewmodels.RegisterOtpView
+import com.guardianlabs.safetysos.features.home.presentation.HomeActivity
 
 @Composable
 fun RegisterOtpScreen(
@@ -45,18 +46,15 @@ fun RegisterOtpScreen(
             is NetworkResult.Success -> {
                 val user: User = state.data
                 if (user.navigateToHome) {
-                    navController.navigate(AuthRoutes.Home) {
-                        popUpTo(AuthRoutes.RegisterOtp) {
-                            inclusive = true
-                        }
-                    }
                     viewModel.resetRegistrationState()
+                    context.startActivity(Intent(context, HomeActivity::class.java))
+                    activity?.finish()
                 }
             }
             is NetworkResult.Error -> {
                 snackbarHostState.showSnackbar(state.message)
             }
-            else -> { /* Idle or Loading - non-side-effect states */ }
+            else -> { /* Idle or Loading */ }
         }
     }
 

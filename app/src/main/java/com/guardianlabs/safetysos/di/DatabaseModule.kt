@@ -25,7 +25,9 @@ object DatabaseModule {
             context,
             Database::class.java,
             "safetysos.db"
-        ).build()
+        )
+        .fallbackToDestructiveMigration()
+        .build()
     }
 
     @Provides

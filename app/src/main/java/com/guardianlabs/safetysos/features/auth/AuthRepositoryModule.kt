@@ -10,6 +10,8 @@ import com.guardianlabs.safetysos.features.auth.data.repositories.LoginInterface
 import com.guardianlabs.safetysos.features.auth.domain.repositories.LoginInterface
 import com.guardianlabs.safetysos.features.auth.data.repositories.ForgotPasswordInterfaceImpl
 import com.guardianlabs.safetysos.features.auth.domain.repositories.ForgotPasswordInterface
+import com.guardianlabs.safetysos.features.auth.data.repositories.ForgotPasswordOtpInterfaceImpl
+import com.guardianlabs.safetysos.features.auth.domain.repositories.ForgotPasswordOtpInterface
 
 import dagger.Binds
 import dagger.Module
@@ -50,4 +52,11 @@ abstract class RepositoryModule {
     abstract fun bindForgotPasswordInterface(
         impl: ForgotPasswordInterfaceImpl
     ): ForgotPasswordInterface
+    
+    @Binds
+@Singleton
+abstract fun bindForgotPasswordOtpInterface(
+    impl: ForgotPasswordOtpInterfaceImpl
+): ForgotPasswordOtpInterface
+
 }
