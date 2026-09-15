@@ -6,11 +6,11 @@ apply plugin: 'kotlin-android'
 apply plugin: 'com.google.gms.google-services'
 
 android {
-    namespace "com.guardianlabs.safetysos" 
+    namespace "com.resq" 
     
     compileSdkVersion 34
     defaultConfig {
-        applicationId "com.guardianlabs.safetysos"
+        applicationId "com.resq"
         minSdkVersion 23
         targetSdkVersion 34
         versionCode 1 
