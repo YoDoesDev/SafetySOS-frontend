@@ -1,0 +1,12 @@
+package com.resq.features.auth.data.remote.dto
+
+import com.google.gson.annotations.SerializedName
+
+data class ForgotPasswordRequestDto(
+    @SerializedName("phone") val phone: String
+)
+
+data class ForgotPasswordResponseDto(
+    @SerializedName("success") val success: Boolean,
+    @SerializedName("reason") val reason: String? = null
+)

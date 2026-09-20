@@ -3,6 +3,7 @@ package com.resq.core.database.di
 import android.content.Context
 import androidx.room.Room
 import com.resq.core.data.local.database.Database
+import com.resq.core.data.local.database.dao.ContactsDao
 import com.resq.core.data.local.database.dao.UserDao
 import dagger.Module
 import dagger.Provides
@@ -20,11 +21,10 @@ object DatabaseModule {
     fun provideDatabase(
         @ApplicationContext context: Context
     ): Database {
-
         return Room.databaseBuilder(
             context,
             Database::class.java,
-            "resq.db"
+            "safetysos.db"
         )
         .fallbackToDestructiveMigration()
         .build()
@@ -34,4 +34,9 @@ object DatabaseModule {
     fun provideUserDao(
         db: Database
     ): UserDao = db.userDao()
+
+    @Provides
+    fun provideContactsDao(
+        db: Database
+    ): ContactsDao = db.contactsDao()
 }

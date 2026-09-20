@@ -3,6 +3,7 @@ package com.resq.di
 import com.resq.core.data.remote.interceptors.RetryInterceptor
 import com.resq.features.auth.data.remote.AuthApiService
 import com.resq.features.splash.data.remote.SplashApiService
+import com.resq.features.contacts.data.remote.ContactsApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -51,4 +52,10 @@ object NetworkModule {
     fun provideSplashApi(
         retrofit: Retrofit 
     ): SplashApiService = retrofit.create(SplashApiService::class.java)
+    
+    @Provides
+    @Singleton
+    fun provideContactsApiService(
+        retrofit: Retrofit
+    ): ContactsApiService = retrofit.create(ContactsApiService::class.java)
 }

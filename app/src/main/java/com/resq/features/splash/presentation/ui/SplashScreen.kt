@@ -66,7 +66,7 @@ fun SplashScreen(
                 painter = painterResource(id = R.drawable.resq_logo),
                 contentDescription = "ResQ Logo",
                 modifier = Modifier
-                    .size(220.dp)
+                    .size(250.dp)
             )
 
             /* 

@@ -1,9 +1,13 @@
 package com.resq.features.auth.data.remote.dto
 
-import com.google.gson.annotations.SerializedName
+// Request sent to backend
+data class RegisterRequestDto(
+    val username: String,
+    val phone: String,
+    val password: String
+)
 
-data class RegisterDto(
-    @SerializedName("phone") val phone: String,
-    @SerializedName("password") val password: String,
-    @SerializedName("username") val username: String
+// Response received from backend
+data class RegisterResponseDto(
+    val navigateToOtp: Boolean
 )
