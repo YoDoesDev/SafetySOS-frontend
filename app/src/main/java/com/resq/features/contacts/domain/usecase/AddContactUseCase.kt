@@ -1,6 +1,7 @@
 package com.resq.features.contacts.domain.usecase
 
 import com.resq.core.data.local.database.entities.ContactsEntity
+import com.resq.features.contacts.data.repositories.SessionExpiredException
 import com.resq.features.contacts.domain.repositories.AddContactRepository
 import javax.inject.Inject
 
@@ -25,23 +26,20 @@ class AddContactUseCase @Inject constructor(
         }
 
         var isResQUser = false
+        val trimmedUsername = username?.trim()
 
         // 2. Perform optional online username verification
-        if (!username.isNullOrBlank()) {
-            val verificationResult = verifyUsernameUseCase(username.trim())
-            
-            // Evaluates success vs failure based on the boolean result, NOT just HTTP status
-            verificationResult.fold(
-                onSuccess = {
-                    isResQUser = true
-                },
-                onFailure = { exception ->
-                    // Catches both { "exists": false } and SessionExpiredException
-                    return AddContactResult.GenericError(
-                        exception.message ?: "Failed to verify username."
-                    )
-                }
-            )
+        if (!trimmedUsername.isNullOrEmpty()) {
+            try {
+                // Returns Boolean (true/false) directly based on repository logic
+                isResQUser = verifyUsernameUseCase(trimmedUsername)
+            } catch (e: SessionExpiredException) {
+                // Session expired — stop contact creation and surface error
+                return AddContactResult.GenericError(e.message ?: "Session expired. Reopen the app.")
+            } catch (e: Exception) {
+                // Any unhandled exception fallback
+                return AddContactResult.GenericError("Failed to verify username.")
+            }
         }
 
         // 3. Save contact into Room with accurate existsOnResQ flag
@@ -49,7 +47,7 @@ class AddContactUseCase @Inject constructor(
             savedName = savedName,
             phoneNumber = fullPhoneNumber,
             existsOnResQ = isResQUser,
-            username = if (isResQUser) username?.trim() else null
+            username = if (isResQUser) trimmedUsername else null
         )
 
         addContactRepository.addContact(contact)

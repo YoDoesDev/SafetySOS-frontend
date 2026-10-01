@@ -12,7 +12,7 @@ import com.resq.core.data.local.database.entities.ContactsEntity
                    UserEntity::class, 
                    ContactsEntity::class
                ],
-    version = 4
+    version = 5
 )
 abstract class Database : RoomDatabase() {
 
