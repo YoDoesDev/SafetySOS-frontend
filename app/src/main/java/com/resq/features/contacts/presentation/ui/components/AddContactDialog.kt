@@ -33,7 +33,8 @@ val countryCodes = listOf(
 fun AddContactDialog(
     errorMessage: String?,
     onDismiss: () -> Unit,
-    onConfirm: (savedName: String, fullPhoneNumber: String, username: String?) -> Unit
+    // 1. Updated lambda signature to take 4 parameters
+    onConfirm: (savedName: String, rawPhone: String, countryCode: String, username: String?) -> Unit
 ) {
     var savedName by remember { mutableStateOf("") }
     var rawPhone by remember { mutableStateOf("") }
@@ -161,15 +162,14 @@ fun AddContactDialog(
 
                 // Inline Error Display
                 if (!errorMessage.isNullOrBlank()) {
-    Spacer(modifier = Modifier.height(8.dp))
-    Text(
-        text = errorMessage,
-        color = Color(0xFFD32F2F),
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Medium
-    )
-}
-
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = errorMessage,
+                        color = Color(0xFFD32F2F),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -183,8 +183,13 @@ fun AddContactDialog(
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            val fullPhone = selectedCountryCode.code + rawPhone.trim()
-                            onConfirm(savedName, fullPhone, username)
+                            // 2. Pass rawPhone and country code separately
+                            onConfirm(
+                                savedName, 
+                                rawPhone, 
+                                selectedCountryCode.code, 
+                                username.ifBlank { null }
+                            )
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
                         shape = RoundedCornerShape(12.dp)
@@ -196,6 +201,7 @@ fun AddContactDialog(
         }
     }
 }
+
 
 @Composable
 private fun dialogTextFieldColors() = OutlinedTextFieldDefaults.colors(

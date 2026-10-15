@@ -57,34 +57,57 @@ class ContactsView @Inject constructor(
     }
 
     fun onAddContactSubmitted(savedName: String, rawPhone: String, countryCode: String, username: String?) {
-        val fullPhoneNumber = countryCode + rawPhone.trim()
+    val trimmedName = savedName.trim()
+    var cleanedPhone = rawPhone.trim()
 
-        if (savedName.isBlank()) {
-            _dialogError.value = "Please enter a saved name."
-            return
-        }
+    // 1. Validate saved name
+    if (trimmedName.isBlank()) {
+        _dialogError.value = "Please enter a saved name."
+        return
+    }
 
-        if (rawPhone.isBlank()) {
-            _dialogError.value = "Please enter a valid phone number."
-            return
-        }
+    // 2. Validate raw phone before stripping zeros or adding country code
+    if (cleanedPhone.isBlank()) {
+        _dialogError.value = "Please enter a valid phone number."
+        return
+    }
 
-        viewModelScope.launch {
-            _dialogError.value = ""
+    // 3. Strip leading zeros
+    cleanedPhone = cleanedPhone.trimStart('0')
 
-            when (val result = addContactUseCase(savedName, fullPhoneNumber, username)) {
-                is AddContactResult.Success -> {
-                    dismissAddDialog()
-                }
-                is AddContactResult.DuplicateError -> {
-                    _dialogError.value = result.message
-                }
-                is AddContactResult.GenericError -> {
-                    _dialogError.value = result.message
-                }
+    // 4. Re-check if it became blank after stripping zeros (e.g., user typed "000")
+    if (cleanedPhone.isBlank()) {
+        _dialogError.value = "Please enter a valid phone number."
+        return
+    }
+
+    // 5. Length validation check (adjust minimum threshold as needed)
+    if (cleanedPhone.length < 7) {
+        _dialogError.value = "Phone number is too short."
+        return
+    }
+
+    // 6. Combine country code and cleaned phone
+    val fullPhoneNumber = countryCode + cleanedPhone
+
+    viewModelScope.launch {
+        _dialogError.value = ""
+
+        when (val result = addContactUseCase(trimmedName, fullPhoneNumber, username)) {
+            is AddContactResult.Success -> {
+                dismissAddDialog()
+            }
+            is AddContactResult.DuplicateError -> {
+                _dialogError.value = result.message
+            }
+            is AddContactResult.GenericError -> {
+                _dialogError.value = result.message
             }
         }
     }
+}
+
+
 
     fun deleteContact(contact: ContactsEntity) {
         viewModelScope.launch {

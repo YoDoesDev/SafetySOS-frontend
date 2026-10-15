@@ -4,12 +4,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.resq.features.settings.presentation.ui.components.LogoutSection
+import com.resq.features.settings.presentation.ui.components.ThemeToggleSection
 import com.resq.features.settings.presentation.viewmodels.SettingsView
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -18,6 +22,9 @@ fun SettingsScreen(
     navController: NavController,
     viewModel: SettingsView = hiltViewModel()
 ) {
+    val isDarkTheme by viewModel.isDarkTheme.collectAsState()
+    val isLogoutLoading by viewModel.isLogoutLoading.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -26,23 +33,39 @@ fun SettingsScreen(
                         text = "Settings",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = Color(0xFFD32F2F)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF010101)
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
-        containerColor = Color(0xFF121212)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFF121212))
+                .background(MaterialTheme.colorScheme.background)
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Settings canvas
+            // 1. Theme Switcher Section
+            ThemeToggleSection(
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = { checked ->
+                    viewModel.toggleTheme(checked)
+                }
+            )
+
+            // 2. Logout Section
+            LogoutSection(
+                isLoading = isLogoutLoading,
+                onLogoutConfirm = {
+                    viewModel.logout()
+                }
+            )
         }
     }
 }

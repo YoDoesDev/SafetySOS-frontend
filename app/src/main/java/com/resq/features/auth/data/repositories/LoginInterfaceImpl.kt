@@ -6,13 +6,16 @@ import com.resq.features.auth.data.remote.AuthApiService
 import com.resq.features.auth.data.remote.dto.LoginRequestDto
 import com.resq.features.auth.domain.models.LoginResult
 import com.resq.features.auth.domain.repositories.LoginInterface
+import com.resq.core.data.local.database.dao.UserDao
+import com.resq.core.data.local.database.entities.UserEntity
 import org.json.JSONObject
 import java.io.IOException
 import javax.inject.Inject
 
 class LoginInterfaceImpl @Inject constructor(
     private val api: AuthApiService,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val dao: UserDao
 ) : LoginInterface {
 
     override suspend fun login(phone: String, password: String): NetworkResult<LoginResult> {
@@ -34,6 +37,11 @@ class LoginInterfaceImpl @Inject constructor(
                         tokenManager.resetSessionExpiry()
                     }
                     tokenManager.resetSessionExpiry()
+                    val userEntity = UserEntity(
+                        username = body.username ?: "", 
+                        phone = body.phone ?: ""
+                    )
+                    dao.setUser(user = userEntity)
                     NetworkResult.Success(LoginResult(accessToken = accessToken, refreshToken = refreshToken))
                 } else {
                     NetworkResult.Error("Authentication token missing")

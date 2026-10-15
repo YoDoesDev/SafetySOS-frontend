@@ -9,5 +9,7 @@ data class LoginRequestDto(
 
 data class LoginResponseDto(
     @SerializedName("accessToken") val accessToken: String?,
-    @SerializedName("refreshToken") val refreshToken: String?
+    @SerializedName("refreshToken") val refreshToken: String?,
+    @SerializedName("phone") val phone: String?,
+    @SerializedName("username") val username: String?
 )

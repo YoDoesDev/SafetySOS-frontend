@@ -9,6 +9,6 @@ data class UserEntity(
      @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
 
-    val username: String,
-    val phone: String,
+    val username: String?,
+    val phone: String?,
 ) 

@@ -13,6 +13,9 @@ interface UserDao {
 
     @Upsert
     suspend fun setUser(user: UserEntity)
+    
+    @Query("SELECT phone FROM users LIMIT 1")
+    suspend fun getPhone(): String
 
     @Query("DELETE FROM users")
     suspend fun clearUser()

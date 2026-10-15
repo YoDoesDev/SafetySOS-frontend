@@ -9,4 +9,5 @@ interface AddContactRepository {
     suspend fun existsByPhone(phone: String): Boolean
     suspend fun addContact(contact: ContactsEntity)
     suspend fun deleteContact(contact: ContactsEntity)
+    suspend fun isSelf(phone: String): Boolean
 }

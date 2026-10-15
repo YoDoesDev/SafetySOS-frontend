@@ -5,13 +5,13 @@ import com.resq.features.contacts.data.remote.dto.VerifyUsernameResponse
 import retrofit2.Response
 import retrofit2.http.Header
 import retrofit2.http.Body
-import retrofit2.http.GET
+import retrofit2.http.POST
 
 interface ContactsApiService {
 
-    @GET("contacts/verify-username")
+    @POST("contacts/verify-username")
     suspend fun verifyUsername(
         @Header("Authorization") token: String?, 
-        @Body request: VerifyUsernameRequest
+        @Body request: VerifyUsernameRequest,
     ): Response<VerifyUsernameResponse>
 }

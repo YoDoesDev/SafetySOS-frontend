@@ -3,18 +3,26 @@ package com.resq.features.home.presentation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.resq.features.home.presentation.navigation.HomeNavGraph
+import com.resq.features.settings.presentation.viewmodels.SettingsView
 import com.resq.ui.theme.ResQTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class HomeActivity : ComponentActivity() {
 
+    private val settingsViewModel: SettingsView by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            ResQTheme {
+            val isDarkTheme by settingsViewModel.isDarkTheme.collectAsState()
+
+            ResQTheme(darkTheme = isDarkTheme) {
                 HomeNavGraph()
             }
         }   

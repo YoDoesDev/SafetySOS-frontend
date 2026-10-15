@@ -1,13 +1,14 @@
 package com.resq.features.contacts.data.repositories
 
-import com.resq.core.data.local.database.dao.ContactsDao
+import com.resq.core.data.local.database.dao.*
 import com.resq.core.data.local.database.entities.ContactsEntity
 import com.resq.features.contacts.domain.repositories.AddContactRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class AddContactRepositoryImpl @Inject constructor(
-    private val contactsDao: ContactsDao
+    private val contactsDao: ContactsDao,
+    private val userDao: UserDao
 ) : AddContactRepository {
 
     override fun getAllContacts(): Flow<List<ContactsEntity>> = contactsDao.getAllContacts()
@@ -22,5 +23,9 @@ class AddContactRepositoryImpl @Inject constructor(
 
     override suspend fun deleteContact(contact: ContactsEntity) {
         contactsDao.deleteContact(contact)
+    }
+    
+    override suspend fun isSelf(phone: String): Boolean {
+        return (userDao.getPhone() == phone)
     }
 }

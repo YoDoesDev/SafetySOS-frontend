@@ -6,11 +6,14 @@ data class VerifyUsernameResponse(
     @SerializedName("exists")
     val exists: Boolean,
     
-    @SerializedName("message")
-    val message: String? = null
+    @SerializedName("reason")
+    val reason: String? = null
 )
 
 data class VerifyUsernameRequest(
     @SerializedName("username")
-    val username: String
+    val username: String,
+    
+    @SerializedName("phone")
+    val phone: String
 )

@@ -46,8 +46,8 @@ fun ContactsScreen(
         AddContactDialog(
             errorMessage = dialogError,
             onDismiss = { viewModel.dismissAddDialog() },
-            onConfirm = { savedName, fullPhone, username ->
-                viewModel.onAddContactSubmitted(savedName, fullPhone, "", username)
+            onConfirm = { savedName, rawPhone, countryCode, username ->
+                viewModel.onAddContactSubmitted(savedName, rawPhone, countryCode, username)
             }
         )
     }
