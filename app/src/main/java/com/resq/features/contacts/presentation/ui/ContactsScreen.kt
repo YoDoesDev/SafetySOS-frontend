@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,11 +59,11 @@ fun ContactsScreen(
                         text = "Emergency Contacts",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF121212)
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
@@ -72,18 +71,18 @@ fun ContactsScreen(
             SnackbarHost(hostState = snackbarHostState) { data ->
                 Snackbar(
                     snackbarData = data,
-                    containerColor = Color(0xFFB00020),
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
                 )
             }
         },
-        containerColor = Color(0xFF121212)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFF121212))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(horizontal = 20.dp)
         ) {
             Spacer(modifier = Modifier.height(12.dp))
@@ -115,7 +114,7 @@ fun ContactsScreen(
                 ) {
                     Text(
                         text = if (searchQuery.isBlank()) "No contacts saved yet." else "No contacts match search.",
-                        color = Color(0xFFA0A0A0),
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         fontSize = 14.sp
                     )
                 }

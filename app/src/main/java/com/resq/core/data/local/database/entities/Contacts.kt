@@ -15,6 +15,8 @@ data class ContactsEntity(
     val existsOnResQ: Boolean, 
     
     // Optional username for app-to-app features if the contact uses ResQ
-    val username: String? = null
+    val username: String? = null,
+    
+    val savedBy: String
 ) 
 

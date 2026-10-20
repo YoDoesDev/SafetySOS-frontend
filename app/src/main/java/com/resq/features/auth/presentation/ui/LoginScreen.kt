@@ -83,7 +83,7 @@ fun LoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 AuthHeader(
-                    title = "SafetySOS",
+                    title = "ResQ",
                     subtitle = "Stay protected. Get help instantly."
                 )
 

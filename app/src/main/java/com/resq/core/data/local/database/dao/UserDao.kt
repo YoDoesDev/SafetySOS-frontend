@@ -16,6 +16,9 @@ interface UserDao {
     
     @Query("SELECT phone FROM users LIMIT 1")
     suspend fun getPhone(): String
+    
+   @Query("SELECT username FROM users LIMIT 1")
+    suspend fun getUsername(): String
 
     @Query("DELETE FROM users")
     suspend fun clearUser()

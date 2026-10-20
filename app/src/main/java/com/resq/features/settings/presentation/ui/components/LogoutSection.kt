@@ -38,11 +38,6 @@ fun LogoutSection(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = "Sign out and clear local session data",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    fontSize = 12.sp
-                )
             }
 
             Spacer(modifier = Modifier.width(12.dp))

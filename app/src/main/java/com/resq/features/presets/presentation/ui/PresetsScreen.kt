@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -26,21 +25,21 @@ fun PresetsScreen(
                         text = "Message Presets",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = Color(0xFFD32F2F)
-                  )
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF010101)
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
-        containerColor = Color(0xFF121212)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFF121212))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             // Presets canvas
         }

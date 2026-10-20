@@ -99,7 +99,7 @@ fun RegisterScreen(
 
                 AuthHeader(
                     title = "Create Account",
-                    subtitle = "Join SafetySOS and stay protected."
+                    subtitle = "Join ResQ and stay protected."
                 )
 
                 Spacer(modifier = Modifier.height(36.dp))

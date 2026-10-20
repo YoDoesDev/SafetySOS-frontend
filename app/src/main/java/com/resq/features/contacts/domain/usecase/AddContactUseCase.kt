@@ -1,6 +1,7 @@
 package com.resq.features.contacts.domain.usecase
 
 import com.resq.core.data.local.database.entities.ContactsEntity
+import com.resq.core.data.local.database.dao.UserDao
 import com.resq.features.contacts.data.repositories.SessionExpiredException
 import com.resq.features.contacts.domain.repositories.AddContactRepository
 import com.resq.features.contacts.data.repositories.ServerErrorException
@@ -16,7 +17,8 @@ sealed class AddContactResult {
 
 class AddContactUseCase @Inject constructor(
     private val addContactRepository: AddContactRepository,
-    private val verifyUsernameUseCase: VerifyUsernameUseCase
+    private val verifyUsernameUseCase: VerifyUsernameUseCase,
+    private val userDao: UserDao    
 ) {
     suspend operator fun invoke(
         savedName: String, 
@@ -75,13 +77,13 @@ class AddContactUseCase @Inject constructor(
                 return AddContactResult.GenericError("Failed to verify username.")
             }
         }
-
-        // 4. Save contact into Room with accurate existsOnResQ flag
+        
         val contact = ContactsEntity(
             savedName = savedName,
             phoneNumber = fullPhoneNumber,
             existsOnResQ = isResQUser,
-            username = if (isResQUser) trimmedUsername else null
+            username = if (isResQUser) trimmedUsername else null,
+            savedBy = userDao.getPhone()
         )
 
         addContactRepository.addContact(contact)
