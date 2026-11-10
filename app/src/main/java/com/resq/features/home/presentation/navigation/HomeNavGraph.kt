@@ -14,11 +14,12 @@ import androidx.navigation.compose.rememberNavController
 import com.resq.features.home.presentation.ui.HomeScreen
 import com.resq.features.home.presentation.navigation.NavDestination
 import com.resq.features.home.presentation.ui.components.ResQNavigationBar
-
+import com.resq.features.presets.presentation.ui.PresetEditScreen
 import com.resq.features.contacts.presentation.ui.ContactsScreen
 import com.resq.features.deadman.presentation.ui.DeadManScreen
 import com.resq.features.settings.presentation.ui.SettingsScreen
 import com.resq.features.presets.presentation.ui.PresetsScreen
+import com.resq.features.chatwindow.presentation.ui.ChatListScreen
 
 
 
@@ -87,13 +88,18 @@ fun HomeNavGraph(
             composable(NavDestination.SETTINGS.route) {
                 SettingsScreen(navController = navController)
             }
+            
+            // 6. Chat Window
+            composable(NavDestination.SETTINGS.route) {
+                SettingsScreen(navController = navController)
+            }
 
             /* --- Secondary / Sub-Screens (Bottom bar hidden automatically) --- */
             
             // Example: Preset Editor
             composable("preset_edit/{presetId}") { backStackEntry ->
                 val presetId = backStackEntry.arguments?.getString("presetId")
-                // PresetEditScreen(navController = navController, presetId = presetId)
+                PresetEditScreen(navController = navController, presetId = presetId)
             }
         }
     }

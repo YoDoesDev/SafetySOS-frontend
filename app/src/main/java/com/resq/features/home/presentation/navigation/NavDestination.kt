@@ -31,6 +31,13 @@ enum class NavDestination(
         selectedIcon = Icons.Filled.Mail,
         unselectedIcon = Icons.Outlined.Mail
     ),
+    CHAT_WINDOW(
+        route = "chat_window",
+        label = "Chat",
+        selectedIcon = Icons.Filled.Chat,
+        unselectedIcon = Icons.Outlined.ChatBubbleOutline,
+
+    ),
     DEAD_MAN(
         route = "dead_man",
         label = "Switch",

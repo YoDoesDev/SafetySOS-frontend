@@ -1,6 +1,8 @@
 package com.resq.di
 
+import android.content.Context
 import com.resq.core.data.remote.interceptors.RetryInterceptor
+import com.resq.core.data.remote.interceptors.AuthInterceptor 
 import com.resq.features.auth.data.remote.AuthApiService
 import com.resq.features.splash.data.remote.SplashApiService
 import com.resq.features.contacts.data.remote.ContactsApiService
@@ -8,6 +10,7 @@ import com.resq.features.settings.data.remote.SettingsApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext 
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -18,26 +21,29 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-    /*
+
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(
+        @ApplicationContext context: Context,
+         // retryInterceptor: RetryInterceptor
+    ): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(RetryInterceptor(maxRetries = 3))
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .writeTimeout(15, TimeUnit.SECONDS)
+            .addInterceptor(AuthInterceptor(context)) 
+            // .addInterceptor(retryInterceptor)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
             .build()
     }
-    */
+
     @Provides
     @Singleton
     fun provideRetrofit(
-        // okHttpClient: OkHttpClient // Attaches the OkHttpClient to Retrofit
+        okHttpClient: OkHttpClient 
     ): Retrofit {
         return Retrofit.Builder()
             .baseUrl("https://safetysos-api.onrender.com/")
-            //.client(okHttpClient)
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

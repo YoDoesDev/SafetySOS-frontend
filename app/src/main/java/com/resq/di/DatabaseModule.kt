@@ -3,8 +3,7 @@ package com.resq.core.database.di
 import android.content.Context
 import androidx.room.Room
 import com.resq.core.data.local.database.Database
-import com.resq.core.data.local.database.dao.ContactsDao
-import com.resq.core.data.local.database.dao.UserDao
+import com.resq.core.data.local.database.dao.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,4 +38,10 @@ object DatabaseModule {
     fun provideContactsDao(
         db: Database
     ): ContactsDao = db.contactsDao()
+    
+    @Provides
+    fun providePresetDao(
+        db: Database
+    ): PresetDao = db.presetDao()
+
 }
