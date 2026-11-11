@@ -1,35 +1,20 @@
 {
   "allFiles": [
     {
-      "file": "/storage/emulated/0/AndroidIDEProjects/SafetySOS/app/src/main/java/com/resq/features/auth/data/remote/dto/RegisterDto.kt",
+      "file": "/storage/emulated/0/AndroidIDEProjects/SafetySOS/.gitignore",
       "selection": {
         "end": {
-          "column": 0,
-          "index": 0,
-          "line": 0
+          "column": 8,
+          "index": 17,
+          "line": 1
         },
         "start": {
-          "column": 0,
-          "index": 0,
-          "line": 0
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/AndroidIDEProjects/SafetySOS/app/src/main/java/com/guardianlabs/safetysos/features/auth/data/repositories/ForgotPasswordInterfaceImpl.kt",
-      "selection": {
-        "end": {
-          "column": 54,
-          "index": 591,
-          "line": 11
-        },
-        "start": {
-          "column": 54,
-          "index": 591,
-          "line": 11
+          "column": 8,
+          "index": 17,
+          "line": 1
         }
       }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/SafetySOS/app/src/main/java/com/guardianlabs/safetysos/features/auth/data/repositories/ForgotPasswordInterfaceImpl.kt"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/SafetySOS/.gitignore"
 }
