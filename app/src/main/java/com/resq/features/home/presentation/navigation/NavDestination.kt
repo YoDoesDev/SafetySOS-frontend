@@ -5,12 +5,12 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.ui.graphics.vector.ImageVector
 
 enum class NavDestination(
@@ -37,12 +37,6 @@ enum class NavDestination(
         selectedIcon = Icons.Filled.Chat,
         unselectedIcon = Icons.Outlined.ChatBubbleOutline,
 
-    ),
-    DEAD_MAN(
-        route = "dead_man",
-        label = "Switch",
-        selectedIcon = Icons.Filled.Timer,
-        unselectedIcon = Icons.Outlined.Timer
     ),
     CONTACTS(
         route = "contacts",

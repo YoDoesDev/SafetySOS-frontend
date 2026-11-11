@@ -1,5 +1,8 @@
 package com.resq.features.home.presentation.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.resq.features.home.presentation.navigation.NavDestination
@@ -32,13 +36,15 @@ fun ResQNavigationBar(
             color = Color(0xFF1E1E1E), // Elevated Floating Surface
             tonalElevation = 8.dp,
             shadowElevation = 16.dp,
-            modifier = Modifier.height(64.dp)
+            modifier = Modifier
+                .height(64.dp)
+                .fillMaxWidth()
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                    .padding(horizontal = 6.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 NavDestination.values().forEach { destination ->
@@ -52,24 +58,35 @@ fun ResQNavigationBar(
                                 else Color.Transparent
                             )
                             .clickable { onDestinationSelected(destination) }
-                            .padding(horizontal = 10.dp, vertical = 8.dp),
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
                             Icon(
                                 imageVector = if (isSelected) destination.selectedIcon else destination.unselectedIcon,
                                 contentDescription = destination.label,
                                 tint = if (isSelected) Color(0xFFD32F2F) else Color(0xFFA0A0A0),
                                 modifier = Modifier.size(20.dp)
                             )
-                            if (isSelected) {
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = destination.label,
-                                    color = Color(0xFFD32F2F),
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
+                            AnimatedVisibility(
+                                visible = isSelected,
+                                enter = fadeIn(),
+                                exit = fadeOut()
+                            ) {
+                                Row {
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = destination.label,
+                                        color = Color(0xFFD32F2F),
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
                         }
                     }

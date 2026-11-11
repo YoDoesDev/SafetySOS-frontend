@@ -44,4 +44,8 @@ object DatabaseModule {
         db: Database
     ): PresetDao = db.presetDao()
 
+    @Provides
+    fun provideChatThreadDao(
+        db: Database 
+    ): ChatThreadDao = db.chatThreadDao()
 }

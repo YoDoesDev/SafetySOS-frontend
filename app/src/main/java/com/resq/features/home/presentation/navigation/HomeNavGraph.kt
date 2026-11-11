@@ -74,24 +74,19 @@ fun HomeNavGraph(
                 PresetsScreen(navController = navController)
             }
 
-            // 3. Dead Man's Switch Tab
-            composable(NavDestination.DEAD_MAN.route) {
-                DeadManScreen(navController = navController)
-            }
-
-            // 4. Contacts Tab
+            // 3. Contacts Tab
             composable(NavDestination.CONTACTS.route) {
                 ContactsScreen(navController = navController)
             }
 
-            // 5. Settings & Duress PIN Tab
+            // 4. Settings & Duress PIN Tab
             composable(NavDestination.SETTINGS.route) {
                 SettingsScreen(navController = navController)
             }
             
-            // 6. Chat Window
-            composable(NavDestination.SETTINGS.route) {
-                SettingsScreen(navController = navController)
+            // 5. Chat Window
+            composable(NavDestination.CHAT_WINDOW.route) {
+                ChatListScreen(navController = navController)
             }
 
             /* --- Secondary / Sub-Screens (Bottom bar hidden automatically) --- */
