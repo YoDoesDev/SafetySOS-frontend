@@ -28,7 +28,7 @@ class RegisterOtpInterfaceImpl @Inject constructor(
                 username = username, 
                 phone = phone, 
                 password = password, 
-                uid = uid
+                idToken = uid
             )
             
             // 1. Make network call (returns Response<RegisterOtpResponseDto>)

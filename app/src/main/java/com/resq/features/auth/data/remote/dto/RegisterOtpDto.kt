@@ -13,8 +13,8 @@ data class RegisterOtpRequestDto(
     @SerializedName("password")
     val password: String,
 
-    @SerializedName("uid")
-    val uid: String
+    @SerializedName("idToken")
+    val idToken: String
 )
 
 // Response received from backend 

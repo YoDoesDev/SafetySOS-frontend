@@ -67,7 +67,7 @@ class PhoneAuthRepositoryImpl @Inject constructor(
 
             // 3. Fetch ID Token for backend auth header registration
             val tokenResult = user.getIdToken(true).await()
-            val token = tokenResult.token ?: ""
+            val token = tokenResult.token ?: throw Exception("failed to get verification token.")
 
             Result.success(token)
         } catch (e: FirebaseAuthInvalidCredentialsException) {
