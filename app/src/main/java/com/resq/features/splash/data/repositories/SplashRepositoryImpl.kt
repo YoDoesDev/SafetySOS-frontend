@@ -30,6 +30,8 @@ class SplashRepositoryImpl @Inject constructor(
                     body.aToken?.let { newToken ->
                         tokenManager.saveAccessToken(newToken)
                     }
+                    socketManager.reconnectWithLatestToken()
+                    
                     body.rToken?.let { newToken ->
                         tokenManager.saveRefreshToken(newToken)
                     }
