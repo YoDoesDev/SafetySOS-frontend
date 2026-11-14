@@ -20,6 +20,7 @@ import com.resq.features.deadman.presentation.ui.DeadManScreen
 import com.resq.features.settings.presentation.ui.SettingsScreen
 import com.resq.features.presets.presentation.ui.PresetsScreen
 import com.resq.features.chatwindow.presentation.ui.ChatListScreen
+import com.resq.features.chatwindow.presentation.ui.SendMessageScreen
 
 
 
@@ -83,14 +84,25 @@ fun HomeNavGraph(
             composable(NavDestination.SETTINGS.route) {
                 SettingsScreen(navController = navController)
             }
-            
+
             // 5. Chat Window
             composable(NavDestination.CHAT_WINDOW.route) {
                 ChatListScreen(navController = navController)
             }
 
+            composable("send_message") {
+                SendMessageScreen(navController = navController)
+            }
+
+            composable("send_message/{threadId}") { backStackEntry ->
+                SendMessageScreen(
+                    navController = navController,
+                    threadId = backStackEntry.arguments?.getString("threadId")
+                )
+            }
+
             /* --- Secondary / Sub-Screens (Bottom bar hidden automatically) --- */
-            
+
             // Example: Preset Editor
             composable("preset_edit/{presetId}") { backStackEntry ->
                 val presetId = backStackEntry.arguments?.getString("presetId")

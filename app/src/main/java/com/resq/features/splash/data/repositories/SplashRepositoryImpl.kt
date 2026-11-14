@@ -1,6 +1,7 @@
 package com.resq.features.splash.data.repositories
 
 import com.resq.core.data.local.preferences.TokenManager
+import com.resq.core.data.remote.socket.SocketManager
 import com.resq.features.splash.data.remote.SplashApiService
 import com.resq.features.splash.data.remote.dtos.CheckStatusRequest
 import com.resq.features.splash.domain.repositories.SplashRepository
@@ -9,7 +10,8 @@ import javax.inject.Inject
 
 class SplashRepositoryImpl @Inject constructor(
     private val apiService: SplashApiService, 
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val socketManager: SocketManager
 ) : SplashRepository {
 
     override suspend fun checkStatus(): Boolean {

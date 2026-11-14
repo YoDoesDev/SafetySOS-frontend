@@ -19,6 +19,9 @@ interface ChatThreadDao {
     @Query("SELECT * FROM chat_threads WHERE threadId = :threadId")
     suspend fun getThreadById(threadId: String): ChatThreadEntity?
 
+    @Query("SELECT * FROM chat_threads WHERE recipientId = :recipientId LIMIT 1")
+    suspend fun getThreadByRecipientId(recipientId: String): ChatThreadEntity?
+
     // Insert or replace a thread (e.g., when starting a new chat or updating metadata)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertThread(thread: ChatThreadEntity)
