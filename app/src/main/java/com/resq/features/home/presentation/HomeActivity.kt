@@ -10,9 +10,13 @@ import com.resq.features.home.presentation.navigation.HomeNavGraph
 import com.resq.features.settings.presentation.viewmodels.SettingsView
 import com.resq.ui.theme.ResQTheme
 import dagger.hilt.android.AndroidEntryPoint
+import com.resq.core.data.remote.socket.SocketManager
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class HomeActivity : ComponentActivity() {
+    @Inject
+    lateinit var socketManager: SocketManager
 
     private val settingsViewModel: SettingsView by viewModels()
 
@@ -27,4 +31,10 @@ class HomeActivity : ComponentActivity() {
             }
         }   
     }
+    override fun onStart() {
+        super.onStart()
+        // Home is entered after the splash/session check has refreshed the token.
+        socketManager.connect()
+    }
+    
 }

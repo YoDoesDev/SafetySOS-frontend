@@ -123,4 +123,9 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth'
     
     implementation 'com.google.code.gson:gson:2.10.1'
+
+    implementation('io.socket:socket.io-client:2.1.0') {
+        // Android supplies org.json; avoid pulling a conflicting JVM implementation.
+        exclude group: 'org.json', module: 'json'
+    }
 }
