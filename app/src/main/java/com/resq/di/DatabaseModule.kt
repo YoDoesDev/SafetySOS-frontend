@@ -2,6 +2,8 @@ package com.resq.core.database.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.resq.core.data.local.database.Database
 import com.resq.core.data.local.database.dao.*
 import dagger.Module
@@ -14,7 +16,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-
     @Provides
     @Singleton
     fun provideDatabase(
@@ -25,27 +26,25 @@ object DatabaseModule {
             Database::class.java,
             "safetysos.db"
         )
-        .fallbackToDestructiveMigration()
-        .build()
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
-    fun provideUserDao(
-        db: Database
-    ): UserDao = db.userDao()
+    fun provideUserDao(db: Database): UserDao = db.userDao()
 
     @Provides
-    fun provideContactsDao(
-        db: Database
-    ): ContactsDao = db.contactsDao()
-    
-    @Provides
-    fun providePresetDao(
-        db: Database
-    ): PresetDao = db.presetDao()
+    fun provideContactsDao(db: Database): ContactsDao = db.contactsDao()
 
     @Provides
-    fun provideChatThreadDao(
-        db: Database 
-    ): ChatThreadDao = db.chatThreadDao()
+    fun providePresetDao(db: Database): PresetDao = db.presetDao()
+
+    @Provides
+    fun provideChatThreadDao(db: Database): ChatThreadDao = db.chatThreadDao()
+
+    @Provides
+    fun provideChatRequestDao(db: Database): ChatRequestDao = db.chatRequestDao()
+
+    @Provides
+    fun provideChatMessageDao(db: Database): ChatMessageDao = db.chatMessageDao()
 }

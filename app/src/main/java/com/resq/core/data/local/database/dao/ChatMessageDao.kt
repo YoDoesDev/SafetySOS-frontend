@@ -4,38 +4,62 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
 import com.resq.core.data.local.database.entities.ChatMessageEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ChatMessageDao {
 
-    // Observe all messages for a specific thread in real-time, sorted oldest to newest (standard chat layout)
-    @Query("SELECT * FROM chat_messages WHERE threadId = :threadId ORDER BY timestamp ASC")
-    fun getMessagesForThread(threadId: String): Flow<List<ChatMessageEntity>>
+    @Query("""
+        SELECT * FROM chat_messages
+        WHERE threadId = :threadId AND savedBy = :savedBy
+        ORDER BY timestamp ASC
+    """)
+    fun getMessagesForThread(
+        threadId: String,
+        savedBy: String
+    ): Flow<List<ChatMessageEntity>>
 
-    // Insert a single message (e.g., user hits send or incoming socket message arrives)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMessage(message: ChatMessageEntity)
 
-    // Insert a batch of messages (useful for loading history/syncing)
+    @Query("""
+        SELECT EXISTS(
+            SELECT 1 FROM chat_messages
+            WHERE messageId = :messageId AND savedBy = :savedBy
+        )
+    """)
+    suspend fun hasMessage(messageId: String, savedBy: String): Boolean
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMessages(messages: List<ChatMessageEntity>)
 
-    // Update message status (e.g., PENDING -> SENT or DELIVERED)
-    @Query("UPDATE chat_messages SET deliveryStatus = :status WHERE messageId = :messageId")
-    suspend fun updateMessageStatus(messageId: String, status: Int)
+    @Query("""
+        UPDATE chat_messages SET deliveryStatus = :status
+        WHERE messageId = :messageId AND savedBy = :savedBy
+    """)
+    suspend fun updateMessageStatus(messageId: String, savedBy: String, status: Int)
 
-    // Find all messages that are still stuck in PENDING status (used for offline queue sync when socket reconnects)
-    @Query("SELECT * FROM chat_messages WHERE deliveryStatus = 0 ORDER BY timestamp ASC")
-    suspend fun getPendingMessages(): List<ChatMessageEntity>
+    @Query("""
+        SELECT * FROM chat_messages
+        WHERE savedBy = :savedBy AND deliveryStatus = 0
+        ORDER BY timestamp ASC
+    """)
+    suspend fun getPendingMessages(savedBy: String): List<ChatMessageEntity>
 
-    // Delete a specific message
-    @Query("DELETE FROM chat_messages WHERE messageId = :messageId")
-    suspend fun deleteMessage(messageId: String)
+    @Query("""
+        SELECT * FROM chat_messages
+        WHERE threadId = :threadId AND savedBy = :savedBy AND deliveryStatus = 0
+        ORDER BY timestamp ASC
+    """)
+    suspend fun getPendingMessagesForThread(
+        threadId: String,
+        savedBy: String
+    ): List<ChatMessageEntity>
 
-    // Wipe all messages for a thread
-    @Query("DELETE FROM chat_messages WHERE threadId = :threadId")
-    suspend fun deleteMessagesForThread(threadId: String)
+    @Query("DELETE FROM chat_messages WHERE messageId = :messageId AND savedBy = :savedBy")
+    suspend fun deleteMessage(messageId: String, savedBy: String)
+
+    @Query("DELETE FROM chat_messages WHERE threadId = :threadId AND savedBy = :savedBy")
+    suspend fun deleteMessagesForThread(threadId: String, savedBy: String)
 }

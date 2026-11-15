@@ -3,30 +3,30 @@ package com.resq.core.data.local.database.entities
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
-import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "chat_messages",
+    primaryKeys = ["messageId", "savedBy"],
     foreignKeys = [
         ForeignKey(
             entity = ChatThreadEntity::class,
-            parentColumns = ["threadId"],
-            childColumns = ["threadId"],
-            onDelete = ForeignKey.CASCADE // Deleting a thread wipes its messages automatically
+            parentColumns = ["threadId", "savedBy"],
+            childColumns = ["threadId", "savedBy"],
+            onDelete = ForeignKey.CASCADE
         )
     ],
     indices = [
-        Index(value = ["threadId"]), // Fast lookup index for queries by thread
-        Index(value = ["timestamp"]) // Optional index for chronological sorting
+        Index(value = ["threadId", "savedBy"]),
+        Index(value = ["savedBy", "timestamp"])
     ]
 )
 data class ChatMessageEntity(
-    @PrimaryKey
-    val messageId: String,          // Unique UUID or server-generated ID
-    val threadId: String,           // Foreign key matching ChatThreadEntity.threadId
-    val senderId: String,           // User ID of who sent the message
-    val text: String,               // Message content
-    val timestamp: Long,            // Unix epoch time
-    val isSentByMe: Boolean,        // True if local user sent it, false if received
-    val deliveryStatus: Int         // e.g., 0 = PENDING, 1 = SENT, 2 = DELIVERED, 3 = READ
+    val messageId: String,
+    val threadId: String,
+    val senderId: String,
+    val text: String,
+    val timestamp: Long,
+    val isSentByMe: Boolean,
+    val deliveryStatus: Int,
+    val savedBy: String
 )

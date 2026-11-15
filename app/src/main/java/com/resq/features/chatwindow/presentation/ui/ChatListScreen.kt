@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -29,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.resq.features.chatwindow.presentation.ui.components.ChatCard
 import com.resq.features.chatwindow.presentation.ui.components.ChatSearchBar
+import com.resq.features.chatwindow.presentation.ui.components.ChatRequestsButton
 import com.resq.features.chatwindow.presentation.ui.components.SendMessageButton
 import com.resq.features.chatwindow.presentation.viewmodels.ChatListView
 
@@ -65,6 +65,7 @@ fun ChatListScreen(
                 onQueryChange = viewModel::onSearchChanged
             )
             SendMessageButton(onClick = { navController.navigate("send_message") })
+            ChatRequestsButton(onClick = { navController.navigate("chat_requests") })
 
             if (threads.isEmpty()) {
                 Box(
@@ -83,11 +84,12 @@ fun ChatListScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(bottom = 20.dp)
                 ) {
-                    items(threads, key = { it.threadId }) { thread ->
+                    items(count = threads.size, key = { index -> threads[index].threadId }) { index ->
+                        val thread = threads[index]
                         ChatCard(
                             thread = thread,
                             onClick = {
-                                navController.navigate("send_message/${thread.threadId}")
+                                navController.navigate("chat/${android.net.Uri.encode(thread.threadId)}")
                             }
                         )
                     }

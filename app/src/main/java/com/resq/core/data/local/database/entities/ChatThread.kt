@@ -1,11 +1,12 @@
 package com.resq.core.data.local.database.entities
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 
-@Entity(tableName = "chat_threads")
+@Entity(
+    tableName = "chat_threads",
+    primaryKeys = ["threadId", "savedBy"]
+)
 data class ChatThreadEntity(
-    @PrimaryKey
     val threadId: String,
     val recipientId: String,
     val recipientName: String,
@@ -14,5 +15,6 @@ data class ChatThreadEntity(
     val lastMessageTimestamp: Long,
     val lastMessageSenderId: String?,
     val unreadCount: Int = 0,
-    val isEmergencyActive: Boolean = false
+    val isEmergencyActive: Boolean = false,
+    val savedBy: String
 )

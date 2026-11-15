@@ -6,13 +6,15 @@ import com.resq.features.settings.domain.repositories.LogoutRepository
 import com.resq.core.data.local.preferences.TokenManager
 import com.resq.core.data.local.database.dao.UserDao
 import com.resq.core.data.remote.socket.SocketManager
+import com.resq.core.data.remote.socket.ChatMessageSyncManager
 import javax.inject.Inject
 
 class LogoutRepositoryImpl @Inject constructor(
     private val userDao: UserDao,
     private val tokenManager: TokenManager,
     private val api: SettingsApiService,
-    private val socketManager: SocketManager
+    private val socketManager: SocketManager,
+    private val chatMessageSyncManager: ChatMessageSyncManager
 ) : LogoutRepository {
 
     override suspend fun logout(): Result<Unit> {
@@ -33,9 +35,10 @@ class LogoutRepositoryImpl @Inject constructor(
                 }
             }
         } finally {
-            // 2. GUARANTEED Local Cleanup: 
+            // 2. GUARANTEED Local Cleanup:
             // This runs whether the network call succeeded OR threw an exception.
             userDao.clearUser()
+            chatMessageSyncManager.stop()
             socketManager.disconnect()
             tokenManager.clearTokens()
         }

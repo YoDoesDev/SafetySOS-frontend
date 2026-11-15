@@ -21,6 +21,8 @@ import com.resq.features.settings.presentation.ui.SettingsScreen
 import com.resq.features.presets.presentation.ui.PresetsScreen
 import com.resq.features.chatwindow.presentation.ui.ChatListScreen
 import com.resq.features.chatwindow.presentation.ui.SendMessageScreen
+import com.resq.features.chatwindow.presentation.ui.ChatRequestsScreen
+import com.resq.features.chatwindow.presentation.ui.ChatWindowScreen
 
 
 
@@ -94,10 +96,15 @@ fun HomeNavGraph(
                 SendMessageScreen(navController = navController)
             }
 
-            composable("send_message/{threadId}") { backStackEntry ->
-                SendMessageScreen(
-                    navController = navController,
-                    threadId = backStackEntry.arguments?.getString("threadId")
+            composable("chat_requests") {
+                ChatRequestsScreen(navController = navController)
+            }
+
+            composable("chat/{threadId}") { backStackEntry ->
+                val threadId = backStackEntry.arguments?.getString("threadId").orEmpty()
+                ChatWindowScreen(
+                    threadId = threadId,
+                    onBack = { navController.popBackStack() }
                 )
             }
 
